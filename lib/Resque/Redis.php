@@ -7,24 +7,24 @@ if (class_exists('Redis'))
 	class RedisApi extends Redis
 	{
 		private static $defaultNamespace = 'resque:';
-	
-		public function __construct($host, $port, $timeout = 0)
+
+		public function __construct($host, $port, $timeout = 5)
 		{
 			parent::__construct();
-			
+
 			$this->host = $host;
 			$this->port = $port;
 			$this->timeout = $timeout;
-			
+
 			$this->establishConnection();
 		}
-		
+
 		function establishConnection()
 		{
 			$this->pconnect($this->host, (int) $this->port, (int) $this->timeout);
 			$this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
 		}
-	
+
 		public static function prefix($namespace)
 		{
 			self::$defaultNamespace = $namespace;
@@ -42,7 +42,7 @@ else
 	if(!class_exists('Redisent', false)) {
 		require_once dirname(__FILE__) . '/../Redisent/Redisent.php';
 	}
-	
+
 	/**
 	 * Extended Redisent class used by Resque for all communication with
 	 * redis. Essentially adds namespace support to Redisent.
@@ -119,7 +119,7 @@ else
 		// msetnx
 		// mset
 		// renamenx
-	
+
 		/**
 		 * Set Redis namespace (prefix) default: resque
 		 * @param string $namespace
@@ -131,7 +131,7 @@ else
 			}
 			self::$defaultNamespace = $namespace;
 		}
-	
+
 		/**
 		 * Magic method to handle all function requests and prefix key based
 		 * operations with the {self::$defaultNamespace} key prefix.
