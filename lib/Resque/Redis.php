@@ -21,7 +21,7 @@ if (class_exists('Redis'))
 
 		function establishConnection()
 		{
-			$this->pconnect($this->host, (int) $this->port, (int) $this->timeout);
+			$this->connect($this->host, (int) $this->port, (int) $this->timeout);
 			$this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
 		}
 
