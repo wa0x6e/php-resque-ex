@@ -113,7 +113,7 @@
 	{
 		if($logger === null)
 		{
-			fwrite(STDOUT, (($logLevel == self::LOG_NORMAL) ? "" : "[" . strftime('%T %Y-%m-%d') . "] ") . $message['message'] . "\n");
+			fwrite(STDOUT, (($logLevel == Resque_Worker::LOG_NORMAL) ? "" : "[" . strftime('%T %Y-%m-%d') . "] ") . $message['message'] . "\n");
 		}
 		else
 		{

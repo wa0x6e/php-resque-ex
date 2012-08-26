@@ -1,3 +1,7 @@
+## 1.0.3 (2012-08-26) ##
+
+* Fix unknown self reference
+
 ## 1.0.2 (2012-08-22) ##
 
 * Don't use persistent connection to redis, because of segfault bug
