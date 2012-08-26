@@ -10,7 +10,17 @@
 		define('DS', DIRECTORY_SEPARATOR);
 	}
 
-	require_once 'vendor'.DS.'autoload.php';
+	// The library is the root library
+	if (file_exists(__DIR__ . DS . 'vendor' . DS . 'autoload.php'))
+	{
+		require_once __DIR__ . DS . 'vendor' . DS . 'autoload.php';
+	}
+	// The library is a dependency of another library
+	elseif (file_exists(dirname(dirname(__DIR__)) . DS . 'autoload.php'))
+	{
+		require_once dirname(dirname(__DIR__)) . DS . 'autoload.php';
+	}
+
 
 	$logger = null;
 	if (getenv('LOGHANDLERTARGET') !== false && getenv('LOGHANDLER') !== false)
@@ -85,7 +95,7 @@
 				$worker = new Resque_Worker($queues);
 				$worker->registerLogger($logger);
 				$worker->logLevel = $logLevel;
-				logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)));
+				logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
 				$worker->work($interval);
 				break;
 			}
@@ -105,11 +115,11 @@
 			file_put_contents($PIDFILE, getmypid()) or die('Could not write PID information to ' . $PIDFILE);
 		}
 
-		logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)));
+		logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
 		$worker->work($interval);
 	}
 
-	function logStart($logger, $message)
+	function logStart($logger, $message, $logLevel)
 	{
 		if($logger === null)
 		{
