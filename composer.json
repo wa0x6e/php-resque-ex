@@ -1,8 +1,8 @@
 {
 	"name": "kamisama/php-resque-ex",
 	"type": "library",
-	"description": "Redis backed library for creating background jobs and processing them later. Based on resque for Ruby.",
-	"keywords": ["job", "background", "redis", "resque"],
+	"description": "Redis backed library for creating background jobs and processing them later. PHP port based on resque for Ruby.",
+	"keywords": ["job", "background", "redis", "resque", "queue"],
 	"homepage": "http://www.github.com/kamisama/php-resque-ex/",
 	"license": "MIT",
 	"authors": [
@@ -27,13 +27,11 @@
 		}
 	},
 	"support": {
+		"email": "kami@kamisama.me",
 		"issues": "https://github.com/kamisama/php-resque-ex/issues",
 		"source": "https://github.com/kamisama/php-resque-ex"
 	},
 	"conflict": {
 		"chrisboulton/php-resque": "*"
-	},
-	"config": {
-		"bin-dir": "bin"
 	}
 }
