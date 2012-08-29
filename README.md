@@ -22,6 +22,29 @@ Instead of piping STDOUT output to a file, you can log directly to a database, o
 
 Log infos are augmented with more informations, and associated with a workers, a queue, and a job ID if any.
 
+### Job creation delegation
+
+If Resque_Job_Creator class exists and is found by Resque, all jobs creation will be delegated to this class.
+
+The best way to inject this class is to include it in you `APP_INCLUDE` file.
+
+Class content is :
+
+	class Resque_Job_Creator
+	{
+		public static function createJob($className, $args) {
+			
+			// $className is you job class name, the second arguments when enqueuing a job
+			// $args are the arguments passed to your jobs
+			
+			// Instanciate your class, and return the instance
+			
+			return new $className();
+		}
+	}
+	
+This is pretty useful when your autoloader can not load the class, like when classname doesn't match its filename. Some framework, like CakePHP, uses `PluginName.ClassName` convention for classname, and require special handling before loading.
+
 ### Failed jobs logs
 
 You can easily retrieve logs for a failed jobs in the redis database, their keys are named after their job ID. Each failed log will expire after 2 weeks to save space.
@@ -56,11 +79,10 @@ Use the same way as the original port, with two additional ENV :
  See [Monolog](https://github.com/Seldaek/monolog#handlers) doc for all available handlers.
 `LOGHANDLER` is the name of the handler, without the "Handler" part. To use CubeHandler, just type "Cube".
 * `LOGHANDLERTARGET` : Information used by the handler to connect to the database.  
-Depends on the type of loghandler. If it's the *FileRotateHandler*, the target will be the filename. If it's CubeHandler, target will be a udp address. Refer to each Handler to see what type of argument their `__construct()` method requires.
+Depends on the type of loghandler. If it's the *RotatingFileHandler*, the target will be the filename. If it's CubeHandler, target will be a udp address. Refer to each Handler to see what type of argument their `__construct()` method requires.
 
-If one of these two environement variable is missing, it will default to *FileRotating* Handler.
+If one of these two environement variable is missing, it will default to *RotatingFile* Handler.
 
-A symlink to **Fresque** is created in the `bin` folder, to manage your workers.
 
 ## Requirements ##
 
