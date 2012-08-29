@@ -1,3 +1,8 @@
+## 1.0.4 (2012-08-29) ##
+
+* Job creation will be delegated to Resque_Job_Creator class if found
+* Use persistent connection to Redis
+
 ## 1.0.3 (2012-08-26) ##
 
 * Fix unknown self reference
