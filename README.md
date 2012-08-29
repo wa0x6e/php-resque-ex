@@ -73,7 +73,7 @@ Install dependencies
 	
 ## Usage
 
-Use the same way as the original port, with two additional ENV :
+Use the same way as the original port, with additional ENV :
 
 * `LOGHANDLER` : Specify the handler to use for logging (File, MongoDB, Socket, etc …).  
  See [Monolog](https://github.com/Seldaek/monolog#handlers) doc for all available handlers.
@@ -83,6 +83,8 @@ Depends on the type of loghandler. If it's the *RotatingFileHandler*, the target
 
 If one of these two environement variable is missing, it will default to *RotatingFile* Handler.
 
+* `REDIS_DATABASE` : To select another redis database (default 0)
+* `REDIS_NAMESPACE` : To set a different namespace for the keys (default to *resque*)
 
 ## Requirements ##
 
