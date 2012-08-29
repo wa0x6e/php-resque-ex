@@ -31,6 +31,11 @@ class Resque
 	protected static $redisDatabase = 0;
 
 	/**
+	 * @var string namespace of the redis keys
+	 */
+	protected static $namespace = '';
+
+	/**
 	 * @var int PID of current process. Used to detect changes when forking
 	 *  and implement "thread" safety to avoid race conditions.
 	 */
@@ -44,11 +49,12 @@ class Resque
 	 *                      a nested array of servers with host/port pairs.
 	 * @param int $database
 	 */
-	public static function setBackend($server, $database = 0)
+	public static function setBackend($server, $database = 0, $namespace = 'resque')
 	{
 		self::$redisServer   = $server;
 		self::$redisDatabase = $database;
 		self::$redis         = null;
+		self::$namespace 	 = $namespace;
 	}
 
 	/**
@@ -88,7 +94,9 @@ class Resque
 				$port = null;
 			}
 			require_once dirname(__FILE__) . '/Resque/Redis.php';
-			self::$redis = new Resque_Redis($host, $port);
+			$redisInstance = new Resque_Redis($host, $port);
+			$redisInstance->prefix(self::$namespace);
+			self::$redis = $redisInstance;
 		}
 
 		self::$redis->select(self::$redisDatabase);

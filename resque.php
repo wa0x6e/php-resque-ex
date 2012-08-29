@@ -36,9 +36,12 @@
 	}
 
 	$REDIS_BACKEND = getenv('REDIS_BACKEND');
+	$REDIS_DATABASE = getenv('REDIS_DATABASE');
+	$REDIS_NAMESPACE = getenv('REDIS_NAMESPACE');
+
 	if (!empty($REDIS_BACKEND))
 	{
-		Resque::setBackend($REDIS_BACKEND);
+		Resque::setBackend($REDIS_BACKEND, $REDIS_DATABASE, $REDIS_NAMESPACE);
 	}
 
 	$logLevel = 0;

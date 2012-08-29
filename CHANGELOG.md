@@ -1,3 +1,7 @@
+## 1.0.5 (2012-08-29) ##
+
+* Add custom redis database and namespace support
+
 ## 1.0.4 (2012-08-29) ##
 
 * Job creation will be delegated to Resque_Job_Creator class if found

@@ -1,7 +1,5 @@
 <?php
 
-
-
 if (class_exists('Redis'))
 {
 	class RedisApi extends Redis
@@ -25,12 +23,14 @@ if (class_exists('Redis'))
 			$this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
 		}
 
-		public static function prefix($namespace)
+		public function prefix($namespace)
 		{
-			self::$defaultNamespace = $namespace;
+			if (empty($namespace)) $namespace = self::$defaultNamespace;
 			if (strpos($namespace, ':') === false) {
 				$namespace .= ':';
 			}
+			self::$defaultNamespace = $namespace;
+
 			$this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
 		}
 	}
@@ -124,7 +124,7 @@ else
 		 * Set Redis namespace (prefix) default: resque
 		 * @param string $namespace
 		 */
-		public static function prefix($namespace)
+		public function prefix($namespace)
 		{
 			if (strpos($namespace, ':') === false) {
 				$namespace .= ':';
