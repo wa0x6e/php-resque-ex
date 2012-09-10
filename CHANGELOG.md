@@ -1,3 +1,7 @@
+## 1.0.7(2012-09-10) ##
+
+* Fix tests
+
 ## 1.0.6(2012-09-10) ##
 
 * Merge latest commits from php-resque
