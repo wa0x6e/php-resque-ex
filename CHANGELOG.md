@@ -1,3 +1,8 @@
+## 1.0.6(2012-09-10) ##
+
+* Merge latest commits from php-resque
+
+
 ## 1.0.5 (2012-08-29) ##
 
 * Add custom redis database and namespace support
