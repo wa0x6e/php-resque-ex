@@ -13,6 +13,8 @@ define('RESQUE_LIB', CWD . '/../../../lib/');
 define('TEST_MISC', realpath(CWD . '/../../misc/'));
 define('REDIS_CONF', TEST_MISC . '/redis.conf');
 
+
+
 // Change to the directory this file lives in. This is important, due to
 // how we'll be running redis.
 
@@ -45,7 +47,11 @@ if(!preg_match('#^\s*port\s+([0-9]+)#m', $config, $matches)) {
 	exit(1);
 }
 
-Resque::setBackend('localhost:' . $matches[1]);
+define('REDIS_HOST', 'localhost:' . $matches[1]);
+define('REDIS_DATABASE', 7);
+define('REDIS_NAMESPACE', 'testResque');
+
+Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
 
 // Shutdown
 function killRedis($pid)
@@ -62,7 +68,7 @@ function killRedis($pid)
 	if (file_exists($pidFile)) {
 		$pid = trim(file_get_contents($pidFile));
 		posix_kill((int) $pid, 9);
-	
+
 		if(is_file($pidFile)) {
 			unlink($pidFile);
 		}
