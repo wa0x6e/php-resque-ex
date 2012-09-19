@@ -1,8 +1,13 @@
-## 1.0.7(2012-09-10) ##
+## 1.0.8 (2012-09-19) ##
+
+* Remove queues name in worker name in start log
+* Add an extra queue field for logging queue name in start log
+
+## 1.0.7 (2012-09-10) ##
 
 * Fix tests
 
-## 1.0.6(2012-09-10) ##
+## 1.0.6 (2012-09-10) ##
 
 * Merge latest commits from php-resque
 

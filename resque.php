@@ -130,6 +130,10 @@
 		}
 		else
 		{
+			list($host, $pid, $queues) = explode(':', $message['data']['worker'], 3);
+			$message['data']['worker'] = $host . ':' . $pid;
+			$message['data']['queues'] = explode(',', $queues);
+
 			$logger->addInfo($message['message'], $message['data']);
 		}
 	}
