@@ -21,23 +21,14 @@
 		require_once dirname(dirname(__DIR__)) . DS . 'autoload.php';
 	}
 
-
-	$logger = null;
-	if (getenv('LOGHANDLERTARGET') !== false && getenv('LOGHANDLER') !== false)
-	{
-		$logHandlerTarget = getenv('LOGHANDLERTARGET');
-		$logHandlerClassName = 'Monolog\Handler\\' . getenv('LOGHANDLER') . 'Handler';
-
-		if (class_exists('Monolog\Logger') && class_exists($logHandlerClassName))
-		{
-			$logger = new Monolog\Logger('main');
-			$logger->pushHandler(new $logHandlerClassName($logHandlerTarget));
-		}
-	}
-
 	$REDIS_BACKEND = getenv('REDIS_BACKEND');
 	$REDIS_DATABASE = getenv('REDIS_DATABASE');
 	$REDIS_NAMESPACE = getenv('REDIS_NAMESPACE');
+
+	$LOG_HANDLER = getenv('LOGHANDLER');
+	$LOG_HANDLER_TARGET = getenv('LOGHANDLERTARGET');
+
+	$logger = new MonologInit\MonologInit($LOG_HANDLER, $LOG_HANDLER_TARGET);
 
 	if (!empty($REDIS_BACKEND))
 	{
@@ -130,6 +121,10 @@
 		}
 		else
 		{
-			$logger->addInfo($message['message'], $message['data']);
+			list($host, $pid, $queues) = explode(':', $message['data']['worker'], 3);
+			$message['data']['worker'] = $host . ':' . $pid;
+			$message['data']['queues'] = explode(',', $queues);
+
+			$logger->getInstance()->addInfo($message['message'], $message['data']);
 		}
 	}

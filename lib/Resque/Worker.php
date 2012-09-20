@@ -15,8 +15,6 @@ elseif (file_exists(dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'autoload
 	require_once dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'autoload.php';
 }
 
-require_once dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'kamisama/monolog-init/MonologInit.php';
-
 /**
  * Resque worker that handles checking queues for jobs, fetching them
  * off the queues, running them and handling the result.
