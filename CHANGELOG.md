@@ -1,8 +1,17 @@
-## 1.0.7(2012-09-10) ##
+## 1.0.9 (2012-09-20) ##
+
+* Delegate all the MonologHandler creation to MonologInit. (requires a composer update).
+* Fix stop event that was not logged
+
+## 1.0.8 (2012-09-19) ##
+
+* In start log, add a new fields for recording queues names
+
+## 1.0.7 (2012-09-10) ##
 
 * Fix tests
 
-## 1.0.6(2012-09-10) ##
+## 1.0.6 (2012-09-10) ##
 
 * Merge latest commits from php-resque
 
