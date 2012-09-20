@@ -1,198 +1,131 @@
 <?php
-require_once dirname(__FILE__) . '/Resque/Event.php';
-require_once dirname(__FILE__) . '/Resque/Exception.php';
-
-/**
- * Base Resque class.
- *
- * @package		Resque
- * @author		Chris Boulton <chris.boulton@interspire.com>
- * @copyright	(c) 2010 Chris Boulton
- * @license		http://www.opensource.org/licenses/mit-license.php
- */
-class Resque
-{
-	const VERSION = '1.0';
-
-	/**
-	 * @var Resque_Redis Instance of Resque_Redis that talks to redis.
-	 */
-	public static $redis = null;
-
-	/**
-	 * @var mixed Host/port conbination separated by a colon, or a nested
-	 * array of server swith host/port pairs
-	 */
-	protected static $redisServer = null;
-
-	/**
-	 * @var int ID of Redis database to select.
-	 */
-	protected static $redisDatabase = 0;
-
-	/**
-	 * @var string namespace of the redis keys
-	 */
-	protected static $namespace = '';
-
-	/**
-	 * @var int PID of current process. Used to detect changes when forking
-	 *  and implement "thread" safety to avoid race conditions.
-	 */
-	 protected static $pid = null;
-
-	/**
-	 * Given a host/port combination separated by a colon, set it as
-	 * the redis server that Resque will talk to.
-	 *
-	 * @param mixed $server Host/port combination separated by a colon, or
-	 *                      a nested array of servers with host/port pairs.
-	 * @param int $database
-	 */
-	public static function setBackend($server, $database = 0, $namespace = 'resque')
+	$QUEUE = getenv('QUEUE');
+	if (empty($QUEUE))
 	{
-		self::$redisServer   = $server;
-		self::$redisDatabase = $database;
-		self::$redis         = null;
-		self::$namespace 	 = $namespace;
+		die("Set QUEUE env var containing the list of queues to work.\n");
 	}
 
-	/**
-	 * Return an instance of the Resque_Redis class instantiated for Resque.
-	 *
-	 * @return Resque_Redis Instance of Resque_Redis.
-	 */
-	public static function redis()
+	if (!defined('DS'))
 	{
-		// Detect when the PID of the current process has changed (from a fork, etc)
-		// and force a reconnect to redis.
-		$pid = getmypid();
-		if (self::$pid !== $pid) {
-			self::$redis = null;
-			self::$pid   = $pid;
+		define('DS', DIRECTORY_SEPARATOR);
+	}
+
+	// The library is the root library
+	if (file_exists(__DIR__ . DS . 'vendor' . DS . 'autoload.php'))
+	{
+		require_once __DIR__ . DS . 'vendor' . DS . 'autoload.php';
+	}
+	// The library is a dependency of another library
+	elseif (file_exists(dirname(dirname(__DIR__)) . DS . 'autoload.php'))
+	{
+		require_once dirname(dirname(__DIR__)) . DS . 'autoload.php';
+	}
+
+	$REDIS_BACKEND = getenv('REDIS_BACKEND');
+	$REDIS_DATABASE = getenv('REDIS_DATABASE');
+	$REDIS_NAMESPACE = getenv('REDIS_NAMESPACE');
+
+	$LOG_HANDLER = getenv('LOGHANDLER');
+	$LOG_HANDLER_TARGET = getenv('LOGHANDLERTARGET');
+
+	require_once dirname(__DIR__) . DS . 'monolog-init' . DS . 'MonologInit.php';
+	$logger = new MonologInit\MonologInit($LOG_HANDLER, $LOG_HANDLER_TARGET);
+
+	if (!empty($REDIS_BACKEND))
+	{
+		Resque::setBackend($REDIS_BACKEND, $REDIS_DATABASE, $REDIS_NAMESPACE);
+	}
+
+	$logLevel = 0;
+	$LOGGING = getenv('LOGGING');
+	$VERBOSE = getenv('VERBOSE');
+	$VVERBOSE = getenv('VVERBOSE');
+	if (!empty($LOGGING) || !empty($VERBOSE))
+	{
+		$logLevel = Resque_Worker::LOG_NORMAL;
+	}
+	else if (!empty($VVERBOSE))
+	{
+		$logLevel = Resque_Worker::LOG_VERBOSE;
+	}
+
+	$APP_INCLUDE = getenv('APP_INCLUDE');
+	if ($APP_INCLUDE)
+	{
+		if (!file_exists($APP_INCLUDE))
+		{
+			die('APP_INCLUDE (' . $APP_INCLUDE . ") does not exist.\n");
 		}
 
-		if(!is_null(self::$redis)) {
-			return self::$redis;
-		}
+		require_once $APP_INCLUDE;
+	}
 
-		$server = self::$redisServer;
-		if (empty($server)) {
-			$server = 'localhost:6379';
-		}
+	$interval = 5;
+	$INTERVAL = getenv('INTERVAL');
+	if (!empty($INTERVAL))
+	{
+		$interval = $INTERVAL;
+	}
 
-		if(is_array($server)) {
-			require_once dirname(__FILE__) . '/Resque/RedisCluster.php';
-			self::$redis = new Resque_RedisCluster($server);
-		}
-		else {
-			if (strpos($server, 'unix:') === false) {
-				list($host, $port) = explode(':', $server);
+	$count = 1;
+	$COUNT = getenv('COUNT');
+	if (!empty($COUNT) && $COUNT > 1)
+	{
+		$count = $COUNT;
+	}
+
+	if ($count > 1)
+	{
+		for ($i = 0; $i < $count; ++$i)
+		{
+			$pid = pcntl_fork();
+			if ($pid == -1)
+			{
+				die("Could not fork worker " . $i . "\n");
 			}
-			else {
-				$host = $server;
-				$port = null;
+			// Child, start the worker
+			else if (!$pid)
+			{
+				$queues = explode(',', $QUEUE);
+				$worker = new Resque_Worker($queues);
+				$worker->registerLogger($logger);
+				$worker->logLevel = $logLevel;
+				logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
+				$worker->work($interval);
+				break;
 			}
-			require_once dirname(__FILE__) . '/Resque/Redis.php';
-			$redisInstance = new Resque_Redis($host, $port);
-			$redisInstance->prefix(self::$namespace);
-			self::$redis = $redisInstance;
+		}
+	}
+	// Start a single worker
+	else
+	{
+		$queues = explode(',', $QUEUE);
+		$worker = new Resque_Worker($queues);
+		$worker->registerLogger($logger);
+		$worker->logLevel = $logLevel;
+
+		$PIDFILE = getenv('PIDFILE');
+		if ($PIDFILE)
+		{
+			file_put_contents($PIDFILE, getmypid()) or die('Could not write PID information to ' . $PIDFILE);
 		}
 
-		self::$redis->select(self::$redisDatabase);
-		return self::$redis;
+		logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
+		$worker->work($interval);
 	}
 
-	/**
-	 * Push a job to the end of a specific queue. If the queue does not
-	 * exist, then create it as well.
-	 *
-	 * @param string $queue The name of the queue to add the job to.
-	 * @param array $item Job description as an array to be JSON encoded.
-	 */
-	public static function push($queue, $item)
+	function logStart($logger, $message, $logLevel)
 	{
-		self::redis()->sadd('queues', $queue);
-		self::redis()->rpush('queue:' . $queue, json_encode($item));
-	}
-
-	/**
-	 * Pop an item off the end of the specified queue, decode it and
-	 * return it.
-	 *
-	 * @param string $queue The name of the queue to fetch an item from.
-	 * @return array Decoded item from the queue.
-	 */
-	public static function pop($queue)
-	{
-		$item = self::redis()->lpop('queue:' . $queue);
-		if(!$item) {
-			return;
+		if($logger === null)
+		{
+			fwrite(STDOUT, (($logLevel == Resque_Worker::LOG_NORMAL) ? "" : "[" . strftime('%T %Y-%m-%d') . "] ") . $message['message'] . "\n");
 		}
+		else
+		{
+			list($host, $pid, $queues) = explode(':', $message['data']['worker'], 3);
+			$message['data']['worker'] = $host . ':' . $pid;
+			$message['data']['queues'] = explode(',', $queues);
 
-		return json_decode($item, true);
-	}
-
-	/**
-	 * Return the size (number of pending jobs) of the specified queue.
-	 *
-	 * @param $queue name of the queue to be checked for pending jobs
-	 *
-	 * @return int The size of the queue.
-	 */
-	public static function size($queue)
-	{
-		return self::redis()->llen('queue:' . $queue);
-	}
-
-	/**
-	 * Create a new job and save it to the specified queue.
-	 *
-	 * @param string $queue The name of the queue to place the job in.
-	 * @param string $class The name of the class that contains the code to execute the job.
-	 * @param array $args Any optional arguments that should be passed when the job is executed.
-	 * @param boolean $trackStatus Set to true to be able to monitor the status of a job.
-	 *
-	 * @return string
-	 */
-	public static function enqueue($queue, $class, $args = null, $trackStatus = false)
-	{
-		require_once dirname(__FILE__) . '/Resque/Job.php';
-		$result = Resque_Job::create($queue, $class, $args, $trackStatus);
-		if ($result) {
-			Resque_Event::trigger('afterEnqueue', array(
-				'class' => $class,
-				'args'  => $args,
-				'queue' => $queue,
-			));
+			$logger->getInstance()->addInfo($message['message'], $message['data']);
 		}
-
-		return $result;
 	}
-
-	/**
-	 * Reserve and return the next available job in the specified queue.
-	 *
-	 * @param string $queue Queue to fetch next available job from.
-	 * @return Resque_Job Instance of Resque_Job to be processed, false if none or error.
-	 */
-	public static function reserve($queue)
-	{
-		require_once dirname(__FILE__) . '/Resque/Job.php';
-		return Resque_Job::reserve($queue);
-	}
-
-	/**
-	 * Get an array of all known queues.
-	 *
-	 * @return array Array of queues.
-	 */
-	public static function queues()
-	{
-		$queues = self::redis()->smembers('queues');
-		if(!is_array($queues)) {
-			$queues = array();
-		}
-		return $queues;
-	}
-}

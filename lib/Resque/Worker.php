@@ -4,6 +4,19 @@ require_once dirname(__FILE__) . '/Event.php';
 require_once dirname(__FILE__) . '/Job.php';
 require_once dirname(__FILE__) . '/Job/DirtyExitException.php';
 
+// The library is the root library
+if (file_exists(dirname(dirname(__DIR__)) . DS . 'vendor' . DS . 'autoload.php'))
+{
+	require_once dirname(dirname(__DIR__)) . DS . 'vendor' . DS . 'autoload.php';
+}
+// The library is a dependency of another library
+elseif (file_exists(dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'autoload.php'))
+{
+	require_once dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'autoload.php';
+}
+
+require_once dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'kamisama/monolog-init/MonologInit.php';
+
 /**
  * Resque worker that handles checking queues for jobs, fetching them
  * off the queues, running them and handling the result.
@@ -115,6 +128,7 @@ class Resque_Worker
 		$queues = explode(',', $queues);
 		$worker = new self($queues);
 		$worker->setId($workerId);
+		$worker->logger = $worker->getLogger($workerId);
 		return $worker;
 	}
 
@@ -512,6 +526,7 @@ class Resque_Worker
 		Resque::redis()->del('worker:' . $id . ':started');
 		Resque_Stat::clear('processed:' . $id);
 		Resque_Stat::clear('failed:' . $id);
+		Resque::redis()->hdel('workerLogger', $id);
 	}
 
 	/**
@@ -608,7 +623,15 @@ class Resque_Worker
 
 	public function registerLogger($logger = null)
 	{
-		$this->logger = $logger;
+		$this->logger = $logger->getInstance();
+		Resque::redis()->hset('workerLogger', (string)$this, json_encode(array($logger->handler, $logger->target)));
+	}
+
+	public function getLogger($workerId)
+	{
+		$settings = json_decode(Resque::redis()->hget('workerLogger', (string)$workerId));
+		$logger = new MonologInit\MonologInit($settings[0], $settings[1]);
+		return $logger->getInstance();
 	}
 
 	/**
