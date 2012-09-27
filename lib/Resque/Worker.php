@@ -5,14 +5,14 @@ require_once dirname(__FILE__) . '/Job.php';
 require_once dirname(__FILE__) . '/Job/DirtyExitException.php';
 
 // The library is the root library
-if (file_exists(dirname(dirname(__DIR__)) . DS . 'vendor' . DS . 'autoload.php'))
+if (file_exists(dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'))
 {
-	require_once dirname(dirname(__DIR__)) . DS . 'vendor' . DS . 'autoload.php';
+	require_once dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 }
 // The library is a dependency of another library
-elseif (file_exists(dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'autoload.php'))
+elseif (file_exists(dirname(dirname(dirname(dirname(__DIR__)))) . DIRECTORY_SEPARATOR . 'autoload.php'))
 {
-	require_once dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'autoload.php';
+	require_once dirname(dirname(dirname(dirname(__DIR__)))) . DIRECTORY_SEPARATOR . 'autoload.php';
 }
 
 /**
