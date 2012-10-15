@@ -1,3 +1,16 @@
+## 1.0.12 (2012-10-14) ##
+
+* Check that `$logger` is not null before using
+
+## 1.0.11 (2012-10-01) ##
+
+* Update Composer.json
+
+## 1.0.10 (2012-09-27) ##
+
+* Update Composer.json
+
+
 ## 1.0.9 (2012-09-20) ##
 
 * Delegate all the MonologHandler creation to MonologInit. (requires a composer update).
