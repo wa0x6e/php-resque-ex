@@ -374,6 +374,7 @@ class Resque_Worker
 	private function registerSigHandlers()
 	{
 		if(!function_exists('pcntl_signal')) {
+			$this->log(array('message' => 'Signals handling is unsupported', 'data' => array('type' => 'signal')), self::LOG_TYPE_WARNING);
 			return;
 		}
 
@@ -385,7 +386,7 @@ class Resque_Worker
 		pcntl_signal(SIGUSR2, array($this, 'pauseProcessing'));
 		pcntl_signal(SIGCONT, array($this, 'unPauseProcessing'));
 		pcntl_signal(SIGPIPE, array($this, 'reestablishRedisConnection'));
-		$this->log(array('message' => 'Registered signals', 'data' => array('type' => 'signal', 'action' => 'register')), self::LOG_VERBOSE);
+		$this->log(array('message' => 'Registered signals', 'data' => array('type' => 'signal')), self::LOG_TYPE_DEBUG);
 	}
 
 	/**
@@ -393,7 +394,7 @@ class Resque_Worker
 	 */
 	public function pauseProcessing()
 	{
-		$this->log(array('message' => 'USR2 received; pausing job processing', 'data' => array('type' => 'signal', 'action' => 'pause')), self::LOG_TYPE_INFO);
+		$this->log(array('message' => 'USR2 received; pausing job processing', 'data' => array('type' => 'pause')), self::LOG_TYPE_INFO);
 		$this->paused = true;
 	}
 
@@ -403,7 +404,7 @@ class Resque_Worker
 	 */
 	public function unPauseProcessing()
 	{
-		$this->log(array('message' => 'CONT received; resuming job processing', 'data' => array('type' => 'signal', 'action' => 'unpause')), self::LOG_TYPE_INFO);
+		$this->log(array('message' => 'CONT received; resuming job processing', 'data' => array('type' => 'resume')), self::LOG_TYPE_INFO);
 		$this->paused = false;
 	}
 
