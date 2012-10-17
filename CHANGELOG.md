@@ -1,3 +1,7 @@
+## 1.0.13 (2012-10-17) ##
+
+* Pause and unpause events go into their own log category
+
 ## 1.0.12 (2012-10-14) ##
 
 * Check that `$logger` is not null before using
