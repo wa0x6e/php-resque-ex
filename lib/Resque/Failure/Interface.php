@@ -17,5 +17,12 @@ interface Resque_Failure_Interface
 	 * @param string $queue The name of the queue the job was fetched from.
 	 */
 	public function __construct($payload, $exception, $worker, $queue);
+
+    /**
+     * Return details about a failed jobs
+     * @param  string   job Id
+     * @return object   Object containing details of the failed job.
+     */
+    static public function get($jobId);
 }
 ?>
