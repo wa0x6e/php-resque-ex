@@ -1,3 +1,8 @@
+## 1.0.14 (2012-10-23) ##
+
+* Add method to get failed jobs details
+* Merge v1.2 from parent
+
 ## 1.0.13 (2012-10-17) ##
 
 * Pause and unpause events go into their own log category
