@@ -20,8 +20,7 @@ elseif (file_exists(dirname(dirname(dirname(dirname(__DIR__)))) . DS . 'autoload
  * off the queues, running them and handling the result.
  *
  * @package		Resque/Worker
- * @author		Chris Boulton <chris.boulton@interspire.com>
- * @copyright	(c) 2010 Chris Boulton
+ * @author		Chris Boulton <chris@bigcommerce.com>
  * @license		http://www.opensource.org/licenses/mit-license.php
  */
 class Resque_Worker
