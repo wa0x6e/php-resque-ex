@@ -115,7 +115,7 @@
 
 	function logStart($logger, $message, $logLevel)
 	{
-		if($logger === null)
+		if($logger === null || $logger->getInstance() === null)
 		{
 			fwrite(STDOUT, (($logLevel == Resque_Worker::LOG_NORMAL) ? "" : "[" . strftime('%T %Y-%m-%d') . "] ") . $message['message'] . "\n");
 		}
