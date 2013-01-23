@@ -257,13 +257,14 @@ class Resque_Worker
 	 */
 	public function perform(Resque_Job $job)
 	{
+		$startTime = microtime(true);
 		try {
 			Resque_Event::trigger('afterFork', $job);
 			$job->perform();
-			$this->log(array('message' => 'done ID:' . $job->payload['id'], 'data' => array('type' => 'done', 'job_id' => $job->payload['id'])), self::LOG_TYPE_INFO);
+			$this->log(array('message' => 'done ID:' . $job->payload['id'], 'data' => array('type' => 'done', 'job_id' => $job->payload['id'], 'time' => round(microtime(true) - $startTime, 3) * 1000)), self::LOG_TYPE_INFO);
 		}
 		catch(Exception $e) {
-			$this->log(array('message' => $job . ' failed: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'job_id' => $job->payload['id'])), self::LOG_TYPE_ERROR);
+			$this->log(array('message' => $job . ' failed: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'job_id' => $job->payload['id'], 'time' => round(microtime(true) - $startTime, 3) * 1000)), self::LOG_TYPE_ERROR);
 			$job->fail($e);
 			return;
 		}

@@ -1,3 +1,7 @@
+## 1.0.15 (2012-01-23) ##
+
+* Record job processing time
+
 ## 1.0.14 (2012-10-23) ##
 
 * Add method to get failed jobs details
