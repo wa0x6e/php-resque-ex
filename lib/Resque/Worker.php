@@ -45,40 +45,40 @@ class Resque_Worker
 	/**
 	 * @var array Array of all associated queues for this worker.
 	 */
-	private $queues = array();
+	protected $queues = array();
 
 	/**
 	 * @var string The hostname of this worker.
 	 */
-	private $hostname;
+	protected $hostname;
 
 	/**
 	 * @var boolean True if on the next iteration, the worker should shutdown.
 	 */
-	private $shutdown = false;
+	protected $shutdown = false;
 
 	/**
 	 * @var boolean True if this worker is paused.
 	 */
-	private $paused = false;
+	protected $paused = false;
 
 	/**
 	 * @var string String identifying this worker.
 	 */
-	private $id;
+	protected $id;
 
 	/**
 	 * @var Resque_Job Current job, if any, being processed by this worker.
 	 *
 	 */
-	private $currentJob = null;
+	protected $currentJob = null;
 
 	/**
 	 * @var int Process ID of child worker processes.
 	 */
-	private $child = null;
+	protected $child = null;
 
-	private $logger = null;
+	protected $logger = null;
 
 	/**
 	 * Return all workers known to Resque as instantiated instances.
@@ -324,7 +324,7 @@ class Resque_Worker
 	 *
 	 * @return int -1 if the fork failed, 0 for the forked child, the PID of the child for the parent.
 	 */
-	private function fork()
+	protected function fork()
 	{
 		if(!function_exists('pcntl_fork')) {
 			return false;
@@ -341,7 +341,7 @@ class Resque_Worker
 	/**
 	 * Perform necessary actions to start a worker.
 	 */
-	private function startup()
+	protected function startup()
 	{
 		$this->registerSigHandlers();
 		$this->pruneDeadWorkers();
@@ -356,7 +356,7 @@ class Resque_Worker
 	 *
 	 * @param string $status The updated process title.
 	 */
-	private function updateProcLine($status)
+	protected function updateProcLine($status)
 	{
 		if(function_exists('setproctitle')) {
 			setproctitle('resque-' . Resque::VERSION . ': ' . $status);
@@ -371,7 +371,7 @@ class Resque_Worker
 	 * QUIT: Shutdown after the current job finishes processing.
 	 * USR1: Kill the forked child immediately and continue processing jobs.
 	 */
-	private function registerSigHandlers()
+	protected function registerSigHandlers()
 	{
 		if(!function_exists('pcntl_signal')) {
 			$this->log(array('message' => 'Signals handling is unsupported', 'data' => array('type' => 'signal')), self::LOG_TYPE_WARNING);
