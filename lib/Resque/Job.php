@@ -76,8 +76,13 @@ class Resque_Job
 			'id'	=> $id,
 		));
 
-		if($monitor) {
-			$new ? Resque_Job_Status::create($id) : Resque_Job_Status::update($id, Resque_Job_Status::STATUS_WAITING);
+		if ($monitor) {
+			if ($new) {
+				Resque_Job_Status::create($id);
+			} else {
+				$statusInstance = new Resque_Job_Status($id);
+				$statusInstance->update($id, Resque_Job_Status::STATUS_WAITING);
+			}
 		}
 
 		return $id;

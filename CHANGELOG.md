@@ -1,3 +1,7 @@
+## 1.2.3 (2012-01-31) ##
+
+* Fix fatal error when updating job status
+
 ## 1.2.2 (2012-01-30) ##
 
 * Add missing autoloader path
