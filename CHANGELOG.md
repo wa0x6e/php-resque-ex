@@ -1,4 +1,8 @@
-## 1.0.16 (2012-01-30) ##
+## 1.2.2 (2012-01-30) ##
+
+* Add missing autoloader path
+
+## 1.2.1 (2012-01-30) ##
 
 * Moved top-level resque.php to bin folder
 * Detect composer autoloader up to 3 directory level, and fail gracefully if not found
