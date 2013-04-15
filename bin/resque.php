@@ -41,7 +41,7 @@ if (!empty($REDIS_BACKEND)) {
     Resque::setBackend($REDIS_BACKEND, $REDIS_DATABASE, $REDIS_NAMESPACE);
 }
 
-$logLevel = 0;
+$logLevel = Resque_Worker::LOG_NONE;
 $LOGGING = getenv('LOGGING');
 $VERBOSE = getenv('VERBOSE');
 $VVERBOSE = getenv('VVERBOSE');
