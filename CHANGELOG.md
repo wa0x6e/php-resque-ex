@@ -1,3 +1,7 @@
+## 1.2.4 (2013-04-141) ##
+
+* Fix #3 : Logging now honour verbose level
+
 ## 1.2.3 (2012-01-31) ##
 
 * Fix fatal error when updating job status
