@@ -317,4 +317,23 @@ class Resque_Tests_WorkerTest extends Resque_Tests_TestCase
         $this->assertEquals(0, count($lines) -1);
     }
 
+    public function testWorkerLogWithISOTime()
+    {
+        $worker = new Resque_Worker('jobs');
+        $worker->logLevel = Resque_Worker::LOG_NORMAL;
+        $worker->logOutput = fopen('php://memory', 'r+');
+
+        $message = array('message' => 'x', 'data' => '');
+
+        $now = date('c');
+        $this->assertEquals(true, $worker->log($message, Resque_Worker::LOG_TYPE_INFO));
+
+        rewind($worker->logOutput);
+        $output = stream_get_contents($worker->logOutput);
+
+        $lines = explode("\n", $output);
+        $this->assertEquals(1, count($lines) -1);
+        $this->assertEquals('[' . $now . '] x', $lines[0]);
+    }
+
 }
