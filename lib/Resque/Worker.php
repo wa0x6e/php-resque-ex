@@ -352,6 +352,8 @@ class Resque_Worker
      */
     protected function startup()
     {
+        $this->log(array('message' => 'Starting worker ' . $this, 'data' => array('type' => 'start', 'worker' => (string) $this)), self::LOG_TYPE_INFO);
+
         $this->registerSigHandlers();
         $this->pruneDeadWorkers();
         Resque_Event::trigger('beforeFirstFork', $this);

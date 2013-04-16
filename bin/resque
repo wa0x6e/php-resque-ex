@@ -78,7 +78,7 @@ if ($count > 1) {
         if ($pid == -1) {
             die("Could not fork worker " . $i . "\n");
         } elseif (!$pid) { // Child, start the worker
-            startWorker();
+            startWorker($QUEUE, $logLevel, $logger, $interval);
             break;
         }
     }
@@ -89,15 +89,14 @@ if ($count > 1) {
         file_put_contents($PIDFILE, getmypid()) or die('Could not write PID information to ' . $PIDFILE);
     }
 
-    startWorker();
+    startWorker($QUEUE, $logLevel, $logger, $interval);
 }
 
-function startWorker()
+function startWorker($QUEUE, $logLevel, $logger, $interval)
 {
     $queues = explode(',', $QUEUE);
     $worker = new Resque_Worker($queues);
     $worker->registerLogger($logger);
     $worker->logLevel = $logLevel;
-    $worker->log(array('message' => 'Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
     $worker->work($interval);
 }
