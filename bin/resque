@@ -78,39 +78,26 @@ if ($count > 1) {
         if ($pid == -1) {
             die("Could not fork worker " . $i . "\n");
         } elseif (!$pid) { // Child, start the worker
-            $queues = explode(',', $QUEUE);
-            $worker = new Resque_Worker($queues);
-            $worker->registerLogger($logger);
-            $worker->logLevel = $logLevel;
-            logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
-            $worker->work($interval);
+            startWorker();
             break;
         }
     }
 } else { // Start a single worker
-    $queues = explode(',', $QUEUE);
-    $worker = new Resque_Worker($queues);
-    $worker->registerLogger($logger);
-    $worker->logLevel = $logLevel;
 
     $PIDFILE = getenv('PIDFILE');
     if ($PIDFILE) {
         file_put_contents($PIDFILE, getmypid()) or die('Could not write PID information to ' . $PIDFILE);
     }
 
-    logStart($logger, array('message' => '*** Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
-    $worker->work($interval);
+    startWorker();
 }
 
-function logStart($logger, $message, $logLevel)
+function startWorker()
 {
-    if ($logger === null || $logger->getInstance() === null) {
-        fwrite(STDOUT, (($logLevel == Resque_Worker::LOG_NORMAL) ? "" : "[" . strftime('%T %Y-%m-%d') . "] ") . $message['message'] . "\n");
-    } else {
-        list($host, $pid, $queues) = explode(':', $message['data']['worker'], 3);
-        $message['data']['worker'] = $host . ':' . $pid;
-        $message['data']['queues'] = explode(',', $queues);
-
-        $logger->getInstance()->addInfo($message['message'], $message['data']);
-    }
+    $queues = explode(',', $QUEUE);
+    $worker = new Resque_Worker($queues);
+    $worker->registerLogger($logger);
+    $worker->logLevel = $logLevel;
+    $worker->log(array('message' => 'Starting worker ' . $worker, 'data' => array('type' => 'start', 'worker' => (string) $worker)), $logLevel);
+    $worker->work($interval);
 }
