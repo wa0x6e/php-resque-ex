@@ -1,3 +1,12 @@
+## 1.2.5 (2013-05-22)
+
+* Drop support of igbinary serializer in failed job trace
+* Use ISO-8601 formatted date in log
+* Drop .php extension in resque bin filename
+
+> If you're starting your workers manually, use `php bin/resque` instead of `php bin/resque.php`
+
+
 ## 1.2.4 (2013-04-141) ##
 
 * Fix #3 : Logging now honour verbose level
