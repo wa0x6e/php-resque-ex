@@ -20,7 +20,7 @@
 		"php": ">=5.3.0",
 		"ext-pcntl": "*",
 		"monolog/monolog": ">=1.2.0",
-		"fresque/fresque": ">=0.2.5",
+		"fresque/fresque": "1.*.*",
 		"kamisama/monolog-init": ">=0.1.1"
 	},
 	"autoload": {
