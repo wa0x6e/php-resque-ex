@@ -28,7 +28,7 @@
 		}
 	},
 	"suggest": {
-		"fresque/fresque": "A command line tool to manage your workers",
+		"fresque/fresque": "A command line tool to manage your workers"
 	},
 	"support": {
 		"email": "kami@kamisama.me",
