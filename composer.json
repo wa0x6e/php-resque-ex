@@ -20,13 +20,15 @@
 		"php": ">=5.3.0",
 		"ext-pcntl": "*",
 		"monolog/monolog": ">=1.2.0",
-		"fresque/fresque": "1.1.*",
 		"kamisama/monolog-init": ">=0.1.1"
 	},
 	"autoload": {
 		"psr-0": {
 			"Resque": "lib"
 		}
+	},
+	"suggest": {
+		"fresque/fresque": "A command line tool to manage your workers",
 	},
 	"support": {
 		"email": "kami@kamisama.me",
