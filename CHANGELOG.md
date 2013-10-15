@@ -1,6 +1,10 @@
-## 1.2.6 (2013-10-15)
+## 1.2.7 (2013-10-15)
 
 * Include the file given by APP_INCLUDE as soon as possible in bin/resque
+
+## 1.2.6 (2013-06-20)
+
+* Update composer dependencies
 
 ## 1.2.5 (2013-05-22)
 
