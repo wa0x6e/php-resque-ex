@@ -98,7 +98,9 @@ class Resque
 			self::$redis = $redisInstance;
 		}
 
-		if(self::$redisDatabase !== 0) self::$redis->select(self::$redisDatabase);
+		if(self::$redisDatabase !== 0) {
+			self::$redis->select(self::$redisDatabase);
+		} 
 		
 		return self::$redis;
 	}
