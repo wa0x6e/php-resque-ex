@@ -66,6 +66,8 @@ if (!empty($INTERVAL)) {
     $interval = $INTERVAL;
 }
 
+$PIDFILE = getenv('PIDFILE');
+
 $count = 1;
 $COUNT = getenv('COUNT');
 if (!empty($COUNT) && $COUNT > 1) {
@@ -78,15 +80,20 @@ if ($count > 1) {
         if ($pid == -1) {
             die("Could not fork worker " . $i . "\n");
         } elseif (!$pid) { // Child, start the worker
+            if ($PIDFILE) {
+                if ($i == 0) {
+                    writePidFile($PIDFILE);
+                }
+                writePidFile($PIDFILE . '.child.' . ($i + 1));
+            }
             startWorker($QUEUE, $logLevel, $logger, $interval);
             break;
         }
     }
 } else { // Start a single worker
 
-    $PIDFILE = getenv('PIDFILE');
     if ($PIDFILE) {
-        file_put_contents($PIDFILE, getmypid()) or die('Could not write PID information to ' . $PIDFILE);
+        writePidFile($PIDFILE);
     }
 
     startWorker($QUEUE, $logLevel, $logger, $interval);
@@ -99,4 +106,12 @@ function startWorker($QUEUE, $logLevel, $logger, $interval)
     $worker->registerLogger($logger);
     $worker->logLevel = $logLevel;
     $worker->work($interval);
+}
+
+function writePidFile($fullPath, $pid = null)
+{
+    if (is_null($pid)) {
+        $pid = getmypid();
+    }
+    file_put_contents($fullPath, $pid) or die('Could not write PID information to ' . $fullPath);
 }
