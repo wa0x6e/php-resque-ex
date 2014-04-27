@@ -35,6 +35,9 @@
 		"issues": "https://github.com/kamisama/php-resque-ex/issues",
 		"source": "https://github.com/kamisama/php-resque-ex"
 	},
+	"bin": [
+		"bin/resque"
+	],
 	"conflict": {
 		"chrisboulton/php-resque": "*"
 	}
