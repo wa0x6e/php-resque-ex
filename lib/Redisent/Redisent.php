@@ -153,6 +153,6 @@ class Redisent {
         } else {
             $len = strlen($arg);
         }
-        return sprintf('$%d%s%s', strlen($arg), CRLF, $arg);
+        return sprintf('$%d%s%s', $len, CRLF, $arg);
     }
 }
