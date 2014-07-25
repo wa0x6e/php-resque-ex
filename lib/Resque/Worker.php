@@ -201,7 +201,12 @@ class Resque_Worker
             // Attempt to find and reserve a job
             $job = false;
             if (!$this->paused) {
-                $job = $this->reserve();
+                try {
+                    $job = $this->reserve();
+                }
+                catch (\RedisException $e) {
+                    $this->log(array('message' => 'Redis exception caught: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'time' => time())), self::LOG_TYPE_ALERT);
+                }
             }
 
             if (!$job) {
