@@ -35,6 +35,11 @@ class Resque
 	protected static $namespace = '';
 
 	/**
+	 * @var string password for the redis server
+	 */
+	protected static $password = null;
+
+	/**
 	 * @var int PID of current process. Used to detect changes when forking
 	 *  and implement "thread" safety to avoid race conditions.
 	 */
