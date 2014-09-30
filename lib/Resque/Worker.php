@@ -41,7 +41,6 @@ class Resque_Worker
     const LOG_NORMAL = 1;
     const LOG_VERBOSE = 2;
 
-
     const LOG_TYPE_DEBUG = 100;
     const LOG_TYPE_INFO = 200;
     const LOG_TYPE_WARNING = 300;
@@ -109,24 +108,36 @@ class Resque_Worker
         foreach ($workers as $workerId) {
             $instances[] = self::find($workerId);
         }
+
         return $instances;
     }
 
     /**
      * Given a worker ID, check if it is registered/valid.
      *
-     * @param string $workerId ID of the worker.
+     * @param  string  $workerId ID of the worker.
      * @return boolean True if the worker exists, false if not.
      */
     public static function exists($workerId)
     {
-        return (bool)Resque::redis()->sismember('workers', $workerId);
+        return (bool) Resque::redis()->sismember('workers', $workerId);
+    }
+
+    /**
+     * Given a worker ID, delete it
+     *
+     * @param  string  $workerId ID of the worker.
+     * @return boolean True if the worker exists, false if not.
+     */
+    public static function delete($workerId)
+    {
+        return (bool) Resque::redis()->srem('workers', $workerId);
     }
 
     /**
      * Given a worker ID, find it and return an instantiated worker class for it.
      *
-     * @param string $workerId The ID of the worker.
+     * @param  string        $workerId The ID of the worker.
      * @return Resque_Worker Instance of the worker. False if the worker does not exist.
      */
     public static function find($workerId)
@@ -140,6 +151,7 @@ class Resque_Worker
         $worker = new self($queues);
         $worker->setId($workerId);
         $worker->logger = $worker->getLogger($workerId);
+
         return $worker;
     }
 
@@ -203,8 +215,7 @@ class Resque_Worker
             if (!$this->paused) {
                 try {
                     $job = $this->reserve();
-                }
-                catch (\RedisException $e) {
+                } catch (\RedisException $e) {
                     $this->log(array('message' => 'Redis exception caught: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'time' => time())), self::LOG_TYPE_ALERT);
                 }
             }
@@ -280,6 +291,7 @@ class Resque_Worker
         } catch (Exception $e) {
             $this->log(array('message' => $job . ' failed: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'job_id' => $job->payload['id'], 'time' => round(microtime(true) - $startTime, 3) * 1000)), self::LOG_TYPE_ERROR);
             $job->fail($e);
+
             return;
         }
 
@@ -302,6 +314,7 @@ class Resque_Worker
             $job = Resque_Job::reserve($queue);
             if ($job) {
                 $this->log(array('message' => 'Found job on ' . $queue, 'data' => array('type' => 'found', 'queue' => $queue)), self::LOG_TYPE_DEBUG);
+
                 return $job;
             }
         }
@@ -316,9 +329,9 @@ class Resque_Worker
      * If * is found in the list of queues, every queue will be searched in
      * alphabetic order. (@see $fetch)
      *
-     * @param boolean $fetch If true, and the queue is set to *, will fetch
-     * all queue names from redis.
-     * @return array Array of associated queues.
+     * @param  boolean $fetch If true, and the queue is set to *, will fetch
+     *                        all queue names from redis.
+     * @return array   Array of associated queues.
      */
     public function queues($fetch = true)
     {
@@ -328,6 +341,7 @@ class Resque_Worker
 
         $queues = Resque::queues();
         sort($queues);
+
         return $queues;
     }
 
@@ -391,6 +405,7 @@ class Resque_Worker
     {
         if (!function_exists('pcntl_signal')) {
             $this->log(array('message' => 'Signals handling is unsupported', 'data' => array('type' => 'signal')), self::LOG_TYPE_WARNING);
+
             return;
         }
 
@@ -462,6 +477,7 @@ class Resque_Worker
     {
         if (!$this->child) {
             $this->log(array('message' => 'No child to kill.', 'data' => array('type' => 'kill', 'child' => null)), self::LOG_TYPE_DEBUG);
+
             return;
         }
 
@@ -490,11 +506,11 @@ class Resque_Worker
         $workers = self::all();
         foreach ($workers as $worker) {
             if (is_object($worker)) {
-                list($host, $pid, $queues) = explode(':', (string)$worker, 3);
+                list($host, $pid, $queues) = explode(':', (string) $worker, 3);
                 if ($host != $this->hostname || in_array($pid, $workerPids) || $pid == getmypid()) {
                     continue;
                 }
-                $this->log(array('message' => 'Pruning dead worker: ' . (string)$worker, 'data' => array('type' => 'prune')), self::LOG_TYPE_DEBUG);
+                $this->log(array('message' => 'Pruning dead worker: ' . (string) $worker, 'data' => array('type' => 'prune')), self::LOG_TYPE_DEBUG);
                 $worker->unregisterWorker();
             }
         }
@@ -513,6 +529,7 @@ class Resque_Worker
         foreach ($cmdOutput as $line) {
             list($pids[]) = explode(' ', trim($line), 2);
         }
+
         return $pids;
     }
 
@@ -521,8 +538,8 @@ class Resque_Worker
      */
     public function registerWorker()
     {
-        Resque::redis()->sadd('workers', (string)$this);
-        Resque::redis()->set('worker:' . (string)$this . ':started', strftime('%a %b %d %H:%M:%S %Z %Y'));
+        Resque::redis()->sadd('workers', (string) $this);
+        Resque::redis()->set('worker:' . (string) $this . ':started', strftime('%a %b %d %H:%M:%S %Z %Y'));
     }
 
     /**
@@ -534,7 +551,7 @@ class Resque_Worker
             $this->currentJob->fail(new Resque_Job_DirtyExitException);
         }
 
-        $id = (string)$this;
+        $id = (string) $this;
         Resque::redis()->srem('workers', $id);
         Resque::redis()->del('worker:' . $id);
         Resque::redis()->del('worker:' . $id . ':started');
@@ -571,8 +588,8 @@ class Resque_Worker
     {
         $this->currentJob = null;
         Resque_Stat::incr('processed');
-        Resque_Stat::incr('processed:' . (string)$this);
-        Resque::redis()->del('worker:' . (string)$this);
+        Resque_Stat::incr('processed:' . (string) $this);
+        Resque::redis()->del('worker:' . (string) $this);
     }
 
     /**
@@ -588,8 +605,8 @@ class Resque_Worker
     /**
      * Output a given log message to STDOUT.
      *
-     * @param string $message Message to output.
-     * @return  boolean True if the message is logged
+     * @param  string  $message Message to output.
+     * @return boolean True if the message is logged
      */
     public function log($message, $code = self::LOG_TYPE_INFO)
     {
@@ -600,11 +617,12 @@ class Resque_Worker
         /*if ($this->logger === null) {
             if ($this->logLevel === self::LOG_NORMAL && $code !== self::LOG_TYPE_DEBUG) {
                 fwrite($this->logOutput, "*** " . $message['message'] . "\n");
-            } else if ($this->logLevel === self::LOG_VERBOSE) {
+            } elseif ($this->logLevel === self::LOG_VERBOSE) {
                 fwrite($this->logOutput, "** [" . strftime('%T %Y-%m-%d') . "] " . $message['message'] . "\n");
             } else {
                 return false;
             }
+
             return true;
         } else {*/
         $extra = array();
@@ -646,9 +664,7 @@ class Resque_Worker
                 }
             }
 
-
-
-        } else if ($code === self::LOG_TYPE_DEBUG && $this->logLevel === self::LOG_VERBOSE) {
+        } elseif ($code === self::LOG_TYPE_DEBUG && $this->logLevel === self::LOG_VERBOSE) {
             if ($this->logger === null) {
                 fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
             } else {
@@ -665,13 +681,14 @@ class Resque_Worker
     public function registerLogger($logger = null)
     {
         $this->logger = $logger->getInstance();
-        Resque::redis()->hset('workerLogger', (string)$this, json_encode(array($logger->handler, $logger->target)));
+        Resque::redis()->hset('workerLogger', (string) $this, json_encode(array($logger->handler, $logger->target)));
     }
 
     public function getLogger($workerId)
     {
-        $settings = json_decode(Resque::redis()->hget('workerLogger', (string)$workerId));
+        $settings = json_decode(Resque::redis()->hget('workerLogger', (string) $workerId));
         $logger = new MonologInit\MonologInit($settings[0], $settings[1]);
+
         return $logger->getInstance();
     }
 
@@ -693,8 +710,8 @@ class Resque_Worker
     /**
      * Get a statistic belonging to this worker.
      *
-     * @param string $stat Statistic to fetch.
-     * @return int Statistic value.
+     * @param  string $stat Statistic to fetch.
+     * @return int    Statistic value.
      */
     public function getStat($stat)
     {
