@@ -148,6 +148,6 @@ class Redisent {
         if (is_array($arg)) {
             $arg = implode(' ', $arg);
         }
-        return sprintf('$%d%s%s', strlen($len), CRLF, $arg);
+        return sprintf('$%d%s%s', strlen($arg), CRLF, $arg);
     }
 }
