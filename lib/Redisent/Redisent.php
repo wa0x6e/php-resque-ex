@@ -146,12 +146,7 @@ class Redisent {
 
     private function formatArgument($arg) {
         if (is_array($arg)) {
-            $len = 0;
-            foreach ($arg as $a) {
-                $len += strlen($a);
-            }
-        } else {
-            $len = strlen($arg);
+            $arg = implode(' ', $arg);
         }
         return sprintf('$%d%s%s', $len, CRLF, $arg);
     }
