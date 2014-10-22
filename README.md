@@ -80,6 +80,7 @@ Use the same way as the original port, with additional ENV :
 `LOGHANDLER` is the name of the handler, without the "Handler" part. To use CubeHandler, just type "Cube".
 * `LOGHANDLERTARGET` : Information used by the handler to connect to the database.  
 Depends on the type of loghandler. If it's the *RotatingFileHandler*, the target will be the filename. If it's CubeHandler, target will be a udp address. Refer to each Handler to see what type of argument their `__construct()` method requires.
+* `LOGGING` : This environment variable must be set in order to enable logging via Monolog. i.e `LOGGING=1`
 
 If one of these two environement variable is missing, it will default to *RotatingFile* Handler.
 
