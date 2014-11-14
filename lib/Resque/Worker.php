@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('UTC');
+
 require_once dirname(__FILE__) . '/Stat.php';
 require_once dirname(__FILE__) . '/Event.php';
 require_once dirname(__FILE__) . '/Job.php';
