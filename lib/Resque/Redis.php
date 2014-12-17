@@ -160,4 +160,15 @@ else
 	}
 }
 
-class Resque_Redis extends redisApi {}
+class Resque_Redis extends redisApi {
+
+	public function __construct($host, $port, $password = null)
+	{
+		if(is_subclass_of($this, 'Redis')){
+			parent::__construct($host, $port, 5, $password);
+		} else {
+			parent::__construct($host, $port);
+		}
+
+	}
+}
