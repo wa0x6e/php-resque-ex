@@ -30,19 +30,21 @@ The best way to inject this class is to include it in you `APP_INCLUDE` file.
 
 Class content is :
 
-	class Resque_Job_Creator
-	{
-		public static function createJob($className, $args) {
-			
-			// $className is you job class name, the second arguments when enqueuing a job
-			// $args are the arguments passed to your jobs
-			
-			// Instanciate your class, and return the instance
-			
-			return new $className();
-		}
+```php
+class Resque_Job_Creator
+{
+	public static function createJob($className, $args) {
+
+		// $className is you job class name, the second arguments when enqueuing a job
+		// $args are the arguments passed to your jobs
+
+		// Instanciate your class, and return the instance
+
+		return new $className();
 	}
-	
+}
+```
+
 This is pretty useful when your autoloader can not load the class, like when classname doesn't match its filename. Some framework, like CakePHP, uses `PluginName.ClassName` convention for classname, and require special handling before loading.
 
 ### Failed jobs logs
@@ -58,34 +60,40 @@ Fresque is shipped by default to manage your workers. See [Fresque Documentation
 Clone the git repo
 
 	$ git clone git://github.com/kamisama/php-resque-ex.git
-	
+
  `cd` into the folder you just cloned
 
 	$ cd ./php-resque-ex
-	
+
 Download Composer
 
 	$ curl -s https://getcomposer.org/installer | php
-	
+
 Install dependencies
 
 	$ php composer.phar install
-	
+
 ## Usage
+
+### Logging
 
 Use the same way as the original port, with additional ENV :
 
-* `LOGHANDLER` : Specify the handler to use for logging (File, MongoDB, Socket, etc …).  
+* `LOGHANDLER` : Specify the handler to use for logging (File, MongoDB, Socket, etc …).
  See [Monolog](https://github.com/Seldaek/monolog#handlers) doc for all available handlers.
 `LOGHANDLER` is the name of the handler, without the "Handler" part. To use CubeHandler, just type "Cube".
-* `LOGHANDLERTARGET` : Information used by the handler to connect to the database.  
+* `LOGHANDLERTARGET` : Information used by the handler to connect to the database.
 Depends on the type of loghandler. If it's the *RotatingFileHandler*, the target will be the filename. If it's CubeHandler, target will be a udp address. Refer to each Handler to see what type of argument their `__construct()` method requires.
 * `LOGGING` : This environment variable must be set in order to enable logging via Monolog. i.e `LOGGING=1`
 
 If one of these two environement variable is missing, it will default to *RotatingFile* Handler.
 
+### Redis backend
+
+* `REDIS_BACKEND` : hostname of your Redis database
 * `REDIS_DATABASE` : To select another redis database (default 0)
 * `REDIS_NAMESPACE` : To set a different namespace for the keys (default to *resque*)
+* `REDIS_PASSWORD` : If your Redis backend needs authentication
 
 ## Requirements ##
 

@@ -1,3 +1,13 @@
+## 1.3.0 (2014-01-28)
+
+* Fix #8: Performing a DB select when the DB is set to default '0' is not necessary and breaks Twemproxy
+* Fix #13: Added PIDFILE writing when child COUNT > 1
+* Fix #14: Add bin/resque to composer
+* Fix #17: Catch redis connection issue
+* Fix #24: Use getmypid to specify a persistent connection unique identifier
+* Add redis authentication support
+
+
 ## 1.2.7 (2013-10-15)
 
 * Include the file given by APP_INCLUDE as soon as possible in bin/resque
