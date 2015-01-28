@@ -73,6 +73,10 @@ Install dependencies
 
 	$ php composer.phar install
 
+#### Warning
+
+php-resque requires the pcntl php extension, not available on Windows platform. Composer installation will fail if you're trying to install this package on Windows machine. If you still want to continue with the installation at your own risk, execute the composer install command with the `--ignore-platform-reqs` option.
+
 ## Usage
 
 ### Logging
