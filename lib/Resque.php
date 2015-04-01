@@ -95,7 +95,7 @@ class Resque
 				list($host, $port) = explode(':', $server);
 			}
 			else {
-				$host = $server;
+				$host = str_replace('unix://', '', $server);
 				$port = null;
 			}
 			require_once dirname(__FILE__) . '/Resque/Redis.php';
