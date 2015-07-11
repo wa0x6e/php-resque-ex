@@ -37,6 +37,11 @@ if (class_exists('Redis')) {
 
 			$this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
 		}
+
+        public static function getPrefix()
+        {
+            return self::$defaultNamespace;
+        }
 	}
 } else {
 	// Third- party apps may have already loaded Resident from elsewhere
@@ -154,6 +159,11 @@ if (class_exists('Redis')) {
 				return false;
 			}
 		}
+
+        public static function getPrefix()
+        {
+            return self::$defaultNamespace;
+        }
 	}
 }
 
