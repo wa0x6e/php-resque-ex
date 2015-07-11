@@ -276,14 +276,14 @@ class Resque
         // move each item from original queue to temp queue and process it
         $finished = false;
         while (!$finished) {
-            $string = self::redis()->rpoplpush($originalQueue, self::redis()->getPrefix() . $tempQueue);
+            $string = self::redis()->rpoplpush($originalQueue, $tempQueue);
 
             if (!empty($string)) {
                 if (self::matchItem($string, $items)) {
                     self::redis()->rpop($tempQueue);
                     $counter++;
                 } else {
-                    self::redis()->rpoplpush($tempQueue, self::redis()->getPrefix() . $requeueQueue);
+                    self::redis()->rpoplpush($tempQueue, $requeueQueue);
                 }
             } else {
                 $finished = true;
@@ -293,7 +293,7 @@ class Resque
         // move back from temp queue to original queue
         $finished = false;
         while (!$finished) {
-            $string = self::redis()->rpoplpush($requeueQueue, self::redis()->getPrefix() . $originalQueue);
+            $string = self::redis()->rpoplpush($requeueQueue, $originalQueue);
             if (empty($string)) {
                 $finished = true;
             }
