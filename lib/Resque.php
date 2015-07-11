@@ -156,40 +156,6 @@ class Resque
     }
 
     /**
-     * Pop an item off the end of the specified queues, using blocking list pop,
-     * decode it and return it.
-     *
-     * @param array $queues
-     * @param int $timeout
-     * @return null|array   Decoded item from the queue.
-     */
-    public static function blpop(array $queues, $timeout)
-    {
-        $list = [];
-        foreach ($queues AS $queue) {
-            $list[] = 'queue:' . $queue;
-        }
-
-        $item = self::redis()->blpop($list, (int)$timeout);
-
-        if (!$item) {
-            return;
-        }
-
-        /**
-         * Normally the Resque_Redis class returns queue names without the prefix
-         * But the blpop is a bit different. It returns the name as prefix:queue:name
-         * So we need to strip off the prefix:queue: part
-         */
-        $queue = substr($item[0], strlen(self::redis()->getPrefix() . 'queue:'));
-
-        return [
-            'queue'   => $queue,
-            'payload' => json_decode($item[1], true),
-        ];
-    }
-
-    /**
      * Return the size (number of pending jobs) of the specified queue.
      *
      * @param $queue name of the queue to be checked for pending jobs
