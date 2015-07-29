@@ -173,13 +173,13 @@ class Resque_Job
 			$this->instance = new $this->payload['class']();
 		}
 
-		if (is_array($instance))
+		if (is_array($this->instance))
 		{
-			$_realinstance =& $instance[0];
+			$_realinstance =& $this->instance[0];
 		}
 		else
 		{
-			$_realinstance =& $instance;
+			$_realinstance =& $this->instance;
 		}
 
 		$_realinstance->job = $this;
