@@ -161,7 +161,7 @@ class Resque_Job
 		} else {
 			if(!class_exists($this->payload['class'])) {
 				throw new Resque_Exception(
-					'Could not find job class ' . $this->payload['class'] . '.'
+					'Could not find job class ' . $this->payload['class'] . ' (Resque_Job_Creator not loaded).'
 				);
 			}
 
@@ -173,9 +173,18 @@ class Resque_Job
 			$this->instance = new $this->payload['class']();
 		}
 
-		$this->instance->job = $this;
-		$this->instance->args = $this->getArguments();
-		$this->instance->queue = $this->queue;
+		if (is_array($instance))
+		{
+			$_realinstance =& $instance[0];
+		}
+		else
+		{
+			$_realinstance =& $instance;
+		}
+
+		$_realinstance->job = $this;
+		$_realinstance->args = $this->getArguments();
+		$_realinstance->queue = $this->queue;
 		return $this->instance;
 	}
 
@@ -188,18 +197,48 @@ class Resque_Job
 	 */
 	public function perform()
 	{
+
+		$method = 'perform';
+		$beforePerformMethod = 'setUp';
+		$tearDownMethod = 'tearDown';
 		$instance = $this->getInstance();
+		if (is_array($instance))
+		{
+			if (isset($instance[4]))
+			{
+				$tearDownMethod = $instance[4];
+			}
+			if (isset($instance[3]))
+			{
+				$beforePerformMethod = $instance[3];
+			}
+			if (isset($instance[2]))
+			{
+				$args = $instance[2];
+			}
+			if (isset($instance[1]))
+			{
+				$method = $instance[1];
+			}
+			$instance = $instance[0];
+		}
+
 		try {
 			Resque_Event::trigger('beforePerform', $this);
 
-			if(method_exists($instance, 'setUp')) {
-				$instance->setUp();
+			if(method_exists($instance, $beforePerformMethod)) {
+				$instance->$beforePerformMethod();
 			}
-
-			$instance->perform();
-
-			if(method_exists($instance, 'tearDown')) {
-				$instance->tearDown();
+			if (isset($args))
+			{
+				$instance->$method($args);
+			}
+			else
+			{
+				$instance->$method();
+			}
+			if(method_exists($instance, $tearDownMethod)) {
+				$instance->$tearDownMethod();
 			}
 
 			Resque_Event::trigger('afterPerform', $this);
