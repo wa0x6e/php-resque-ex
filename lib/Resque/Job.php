@@ -170,21 +170,15 @@ class Resque_Job
 					'Job class ' . $this->payload['class'] . ' does not contain a perform method.'
 				);
 			}
+
 			$this->instance = new $this->payload['class']();
+
+			$this->instance->job = $this;
+			$this->instance->args = $this->getArguments();
+			$this->instance->queue = $this->queue;
+
 		}
 
-		if (is_array($this->instance))
-		{
-			$_realinstance =& $this->instance[0];
-		}
-		else
-		{
-			$_realinstance =& $this->instance;
-		}
-
-		$_realinstance->job = $this;
-		$_realinstance->args = $this->getArguments();
-		$_realinstance->queue = $this->queue;
 		return $this->instance;
 	}
 
@@ -229,6 +223,7 @@ class Resque_Job
 			if(method_exists($instance, $beforePerformMethod)) {
 				$instance->$beforePerformMethod();
 			}
+
 			if (isset($args))
 			{
 				$instance->$method($args);
