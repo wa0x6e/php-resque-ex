@@ -265,7 +265,9 @@ class Resque_Worker
 
             $this->child = null;
             $this->doneWorking();
-            Resque_Event::trigger('afterdoneworking', $job);
+
+            $fired = Resque_Event::trigger('afterdoneworking', $job);
+            $this->log(array('message' => "afterdoneworking triggered {$fired} callbacks", 'data' => compact('job')), self::LOG_TYPE_INFO);
         }
 
         $this->unregisterWorker();
