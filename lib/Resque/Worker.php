@@ -265,6 +265,7 @@ class Resque_Worker
 
             $this->child = null;
             $this->doneWorking();
+            Resque_Event::trigger('afterdoneworking', $job);
         }
 
         $this->unregisterWorker();
