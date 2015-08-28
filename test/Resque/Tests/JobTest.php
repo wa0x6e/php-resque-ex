@@ -4,9 +4,9 @@ require_once dirname(__FILE__) . '/bootstrap.php';
 /**
  * Resque_Job tests.
  *
- * @package		Resque/Tests
- * @author		Chris Boulton <chris@bigcommerce.com>
- * @license		http://www.opensource.org/licenses/mit-license.php
+ * @package        Resque/Tests
+ * @author        Chris Boulton <chris@bigcommerce.com>
+ * @license        http://www.opensource.org/licenses/mit-license.php
  */
 class Resque_Tests_JobTest extends Resque_Tests_TestCase
 {
@@ -31,7 +31,7 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 		Resque::enqueue('jobs', 'Test_Job');
 
 		$job = Resque_Job::reserve('jobs');
-		if($job == false) {
+		if ($job == false) {
 			$this->fail('Job could not be reserved.');
 		}
 		$this->assertEquals('jobs', $job->queue);
@@ -50,17 +50,17 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 
 	public function testQueuedJobReturnsExactSamePassedInArguments()
 	{
-		$args = array(
-			'int' => 123,
-			'numArray' => array(
+		$args = [
+			'int'        => 123,
+			'numArray'   => [
 				1,
 				2,
-			),
-			'assocArray' => array(
+			],
+			'assocArray' => [
 				'key1' => 'value1',
-				'key2' => 'value2'
-			),
-		);
+				'key2' => 'value2',
+			],
+		];
 		Resque::enqueue('jobs', 'Test_Job', $args);
 		$job = Resque_Job::reserve('jobs');
 
@@ -76,17 +76,17 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 
 	public function testRecreatedJobMatchesExistingJob()
 	{
-		$args = array(
-			'int' => 123,
-			'numArray' => array(
+		$args = [
+			'int'        => 123,
+			'numArray'   => [
 				1,
 				2,
-			),
-			'assocArray' => array(
+			],
+			'assocArray' => [
 				'key1' => 'value1',
-				'key2' => 'value2'
-			),
-		);
+				'key2' => 'value2',
+			],
+		];
 
 		Resque::enqueue('jobs', 'Test_Job', $args);
 		$job = Resque_Job::reserve('jobs');
@@ -102,18 +102,18 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 
 	public function testFailedJobExceptionsAreCaught()
 	{
-		$payload = array(
+		$payload = [
 			'class' => 'Failing_Job',
-			'id' => 'randomId',
-			'args' => null
-		);
+			'id'    => 'randomId',
+			'args'  => null,
+		];
 		$job = new Resque_Job('jobs', $payload);
 		$job->worker = $this->worker;
 
 		$this->worker->perform($job);
 
 		$this->assertEquals(1, Resque_Stat::get('failed'));
-		$this->assertEquals(1, Resque_Stat::get('failed:'.$this->worker));
+		$this->assertEquals(1, Resque_Stat::get('failed:' . $this->worker));
 	}
 
 	/**
@@ -140,13 +140,13 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 
 	public function testJobWithSetUpCallbackFiresSetUp()
 	{
-		$payload = array(
+		$payload = [
 			'class' => 'Test_Job_With_SetUp',
-			'args' => array(
+			'args'  => [
 				'somevar',
 				'somevar2',
-			),
-		);
+			],
+		];
 		$job = new Resque_Job('jobs', $payload);
 		$job->perform();
 
@@ -155,13 +155,13 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 
 	public function testJobWithTearDownCallbackFiresTearDown()
 	{
-		$payload = array(
+		$payload = [
 			'class' => 'Test_Job_With_TearDown',
-			'args' => array(
+			'args'  => [
 				'somevar',
 				'somevar2',
-			),
-		);
+			],
+		];
 		$job = new Resque_Job('jobs', $payload);
 		$job->perform();
 
@@ -170,15 +170,88 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 
 	public function testJobWithNamespace()
 	{
-	    Resque::setBackend(REDIS_HOST, REDIS_DATABASE, 'php');
-	    $queue = 'jobs';
-	    $payload = array('another_value');
-        Resque::enqueue($queue, 'Test_Job_With_TearDown', $payload);
+		Resque::setBackend(REDIS_HOST, REDIS_DATABASE, 'php');
+		$queue = 'jobs';
+		$payload = ['another_value'];
+		Resque::enqueue($queue, 'Test_Job_With_TearDown', $payload);
 
-        $this->assertEquals(Resque::queues(), array('jobs'));
-        $this->assertEquals(Resque::size($queue), 1);
+		$this->assertEquals(Resque::queues(), ['jobs']);
+		$this->assertEquals(Resque::size($queue), 1);
 
-        Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
-        $this->assertEquals(Resque::size($queue), 0);
+		Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
+		$this->assertEquals(Resque::size($queue), 0);
 	}
+
+	public function testDequeueAll()
+	{
+		$queue = 'jobs';
+		Resque::enqueue($queue, 'Test_Job_Dequeue');
+		Resque::enqueue($queue, 'Test_Job_Dequeue');
+		$this->assertEquals(Resque::size($queue), 2);
+		$this->assertEquals(Resque::dequeue($queue), 2);
+		$this->assertEquals(Resque::size($queue), 0);
+	}
+
+	public function testDequeueMakeSureNotDeleteOthers()
+	{
+		$queue = 'jobs';
+		Resque::enqueue($queue, 'Test_Job_Dequeue');
+		Resque::enqueue($queue, 'Test_Job_Dequeue');
+		$other_queue = 'other_jobs';
+		Resque::enqueue($other_queue, 'Test_Job_Dequeue');
+		Resque::enqueue($other_queue, 'Test_Job_Dequeue');
+		$this->assertEquals(Resque::size($queue), 2);
+		$this->assertEquals(Resque::size($other_queue), 2);
+		$this->assertEquals(Resque::dequeue($queue), 2);
+		$this->assertEquals(Resque::size($queue), 0);
+		$this->assertEquals(Resque::size($other_queue), 2);
+	}
+
+	public function testDequeueSpecificItem()
+	{
+		$queue = 'jobs';
+		Resque::enqueue($queue, 'Test_Job_Dequeue1');
+		Resque::enqueue($queue, 'Test_Job_Dequeue2');
+		$this->assertEquals(Resque::size($queue), 2);
+		$test = ['Test_Job_Dequeue2'];
+		$this->assertEquals(Resque::dequeue($queue, $test), 1);
+		$this->assertEquals(Resque::size($queue), 1);
+	}
+
+	public function testDequeueSpecificMultipleItems()
+	{
+		$queue = 'jobs';
+		Resque::enqueue($queue, 'Test_Job_Dequeue1');
+		Resque::enqueue($queue, 'Test_Job_Dequeue2');
+		Resque::enqueue($queue, 'Test_Job_Dequeue3');
+		$this->assertEquals(Resque::size($queue), 3);
+		$test = ['Test_Job_Dequeue2', 'Test_Job_Dequeue3'];
+		$this->assertEquals(Resque::dequeue($queue, $test), 2);
+		$this->assertEquals(Resque::size($queue), 1);
+	}
+
+	public function testDequeueNonExistingItem()
+	{
+		$queue = 'jobs';
+		Resque::enqueue($queue, 'Test_Job_Dequeue1');
+		Resque::enqueue($queue, 'Test_Job_Dequeue2');
+		Resque::enqueue($queue, 'Test_Job_Dequeue3');
+		$this->assertEquals(Resque::size($queue), 3);
+		$test = ['Test_Job_Dequeue4'];
+		$this->assertEquals(Resque::dequeue($queue, $test), 0);
+		$this->assertEquals(Resque::size($queue), 3);
+	}
+
+	public function testDequeueNonExistingItem2()
+	{
+		$queue = 'jobs';
+		Resque::enqueue($queue, 'Test_Job_Dequeue1');
+		Resque::enqueue($queue, 'Test_Job_Dequeue2');
+		Resque::enqueue($queue, 'Test_Job_Dequeue3');
+		$this->assertEquals(Resque::size($queue), 3);
+		$test = ['Test_Job_Dequeue4', 'Test_Job_Dequeue1'];
+		$this->assertEquals(Resque::dequeue($queue, $test), 1);
+		$this->assertEquals(Resque::size($queue), 2);
+	}
+
 }
