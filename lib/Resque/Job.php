@@ -70,6 +70,11 @@ class Resque_Job
 		} else {
 			$id = md5(uniqid('', true));
 		}
+
+        if (empty($args)) {
+            $args = [];
+        }
+
 		Resque::push($queue, array(
 			'class'	=> $class,
 			'args'	=> array($args),
@@ -214,6 +219,7 @@ class Resque_Job
             $performer->perform();
 
 			Resque_Event::trigger('afterPerform', $this);
+
 		}
 		// beforePerform/setUp have said don't perform this job. Return.
 		catch(Resque_Job_DontPerform $e) {
