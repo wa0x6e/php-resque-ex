@@ -143,9 +143,11 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 		$payload = [
 			'class' => 'Test_Job_With_SetUp',
 			'args'  => [
-				'somevar',
-				'somevar2',
-			],
+                [
+                    'somevar',
+                    'somevar2',
+                ],
+            ]
 		];
 		$job = new Resque_Job('jobs', $payload);
 		$job->perform();
@@ -156,11 +158,13 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 	public function testJobWithTearDownCallbackFiresTearDown()
 	{
 		$payload = [
-			'class' => 'Test_Job_With_TearDown',
-			'args'  => [
-				'somevar',
-				'somevar2',
-			],
+            'class' => 'Test_Job_With_TearDown',
+            'args'  => [
+                [
+                    'somevar',
+                    'somevar2',
+                ],
+            ]
 		];
 		$job = new Resque_Job('jobs', $payload);
 		$job->perform();

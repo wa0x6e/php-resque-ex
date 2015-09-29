@@ -33,7 +33,7 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
 			'class' => 'Test_Job',
 			'id' => 'randomId',
 			'args' => array(
-				'somevar',
+				['somevar'],
 			),
 		);
 		$job = new Resque_Job('jobs', $payload);

@@ -70,6 +70,11 @@ class Resque_Job
 		} else {
 			$id = md5(uniqid('', true));
 		}
+
+        if (empty($args)) {
+            $args = [];
+        }
+
 		Resque::push($queue, array(
 			'class'	=> $class,
 			'args'	=> array($args),
@@ -145,11 +150,13 @@ class Resque_Job
 		return $this->payload['args'][0];
 	}
 
-	/**
-	 * Get the instantiated object for this job that will be performing work.
-	 *
-	 * @return object Instance of the object that this job belongs to.
-	 */
+    /**
+     * Get the instantiated object for this job that will be performing work.
+     *
+     * @return object Instance of the object that this job belongs to.
+     *
+     * @throws \Resque_Exception
+     */
 	public function getInstance()
 	{
 		if (!is_null($this->instance)) {
@@ -189,20 +196,30 @@ class Resque_Job
 	public function perform()
 	{
 		$instance = $this->getInstance();
+
+        $hooks = [
+            'before' => $this->beforeHooks(),
+            'around' => $this->aroundHooks(),
+            'after' => $this->afterHooks()
+        ];
+
 		try {
 			Resque_Event::trigger('beforePerform', $this);
 
 			if(method_exists($instance, 'setUp')) {
-				$instance->setUp();
+                $hooks['before'][] = 'setUp';
 			}
-
-			$instance->perform();
 
 			if(method_exists($instance, 'tearDown')) {
-				$instance->tearDown();
+                array_unshift($hooks['after'], 'tearDown');
 			}
 
+            $performer = new Resque_Job_Performer($instance, $this->getArguments(), $hooks);
+
+            $performer->perform();
+
 			Resque_Event::trigger('afterPerform', $this);
+
 		}
 		// beforePerform/setUp have said don't perform this job. Return.
 		catch(Resque_Job_DontPerform $e) {
@@ -211,6 +228,42 @@ class Resque_Job
 
 		return true;
 	}
+
+    /**
+     * beforeHooks
+     *
+     * @return array
+     *
+     * @throws \Resque_Exception
+     */
+    public function beforeHooks()
+    {
+        return Resque_Plugin::beforeHooks($this->getInstance());
+    }
+
+    /**
+     * afterHooks
+     *
+     * @return array
+     *
+     * @throws \Resque_Exception
+     */
+    public function afterHooks()
+    {
+        return Resque_Plugin::afterHooks($this->getInstance());
+    }
+
+    /**
+     * aroundHooks
+     *
+     * @return array
+     *
+     * @throws \Resque_Exception
+     */
+    public function aroundHooks()
+    {
+        return Resque_Plugin::aroundHooks($this->getInstance());
+    }
 
 	/**
 	 * Mark the current job as having failed.
