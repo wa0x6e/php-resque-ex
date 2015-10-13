@@ -172,20 +172,6 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 		$this->assertTrue(Test_Job_With_TearDown::$called);
 	}
 
-	public function testJobWithNamespace()
-	{
-		Resque::setBackend(REDIS_HOST, REDIS_DATABASE, 'php');
-		$queue = 'jobs';
-		$payload = ['another_value'];
-		Resque::enqueue($queue, 'Test_Job_With_TearDown', $payload);
-
-		$this->assertEquals(Resque::queues(), ['jobs']);
-		$this->assertEquals(Resque::size($queue), 1);
-
-		Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
-		$this->assertEquals(Resque::size($queue), 0);
-	}
-
 	public function testDequeueAll()
 	{
 		$queue = 'jobs';
