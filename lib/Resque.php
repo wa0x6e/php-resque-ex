@@ -30,11 +30,6 @@ class Resque
     protected static $redisDatabase = 0;
 
     /**
-     * @var string namespace of the redis keys
-     */
-    protected static $namespace = '';
-
-    /**
      * @var string password for the redis server
      */
     protected static $password = null;
@@ -53,12 +48,11 @@ class Resque
      *                      a nested array of servers with host/port pairs.
      * @param int $database
      */
-    public static function setBackend($server, $database = 0, $namespace = 'resque', $password = null)
+    public static function setBackend($server, $database = 0, $password = null)
     {
         self::$redisServer = $server;
         self::$redisDatabase = $database;
         self::$redis = null;
-        self::$namespace = $namespace;
         self::$password = $password;
     }
 
@@ -98,7 +92,6 @@ class Resque
             }
             require_once dirname(__FILE__) . '/Resque/Redis.php';
             $redisInstance = new Resque_Redis($host, $port, self::$password);
-            $redisInstance->prefix(self::$namespace);
             self::$redis = $redisInstance;
         }
 
@@ -242,14 +235,14 @@ class Resque
         // move each item from original queue to temp queue and process it
         $finished = false;
         while (!$finished) {
-            $string = self::redis()->rpoplpush($originalQueue, self::redis()->getPrefix() . $tempQueue);
+            $string = self::redis()->rpoplpush($originalQueue, $tempQueue);
 
             if (!empty($string)) {
                 if (self::matchItem($string, $items)) {
                     self::redis()->rpop($tempQueue);
                     $counter++;
                 } else {
-                    self::redis()->rpoplpush($tempQueue, self::redis()->getPrefix() . $requeueQueue);
+                    self::redis()->rpoplpush($tempQueue, $requeueQueue);
                 }
             } else {
                 $finished = true;
@@ -259,7 +252,7 @@ class Resque
         // move back from temp queue to original queue
         $finished = false;
         while (!$finished) {
-            $string = self::redis()->rpoplpush($requeueQueue, self::redis()->getPrefix() . $originalQueue);
+            $string = self::redis()->rpoplpush($requeueQueue, $originalQueue);
             if (empty($string)) {
                 $finished = true;
             }
@@ -277,10 +270,10 @@ class Resque
      * item can be ['class'] or ['class' => 'id'] or ['class' => {:foo => 1, :bar => 2}]
      * @private
      *
-     * @params string $string redis result in json
-     * @params $items
+     * @param string $string redis result in json
+     * @param $items
      *
-     * @return (bool)
+     * @return bool
      */
     private static function matchItem($string, $items)
     {

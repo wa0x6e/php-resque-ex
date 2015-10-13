@@ -143,9 +143,11 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 		$payload = [
 			'class' => 'Test_Job_With_SetUp',
 			'args'  => [
-				'somevar',
-				'somevar2',
-			],
+                [
+                    'somevar',
+                    'somevar2',
+                ],
+            ]
 		];
 		$job = new Resque_Job('jobs', $payload);
 		$job->perform();
@@ -156,30 +158,18 @@ class Resque_Tests_JobTest extends Resque_Tests_TestCase
 	public function testJobWithTearDownCallbackFiresTearDown()
 	{
 		$payload = [
-			'class' => 'Test_Job_With_TearDown',
-			'args'  => [
-				'somevar',
-				'somevar2',
-			],
+            'class' => 'Test_Job_With_TearDown',
+            'args'  => [
+                [
+                    'somevar',
+                    'somevar2',
+                ],
+            ]
 		];
 		$job = new Resque_Job('jobs', $payload);
 		$job->perform();
 
 		$this->assertTrue(Test_Job_With_TearDown::$called);
-	}
-
-	public function testJobWithNamespace()
-	{
-		Resque::setBackend(REDIS_HOST, REDIS_DATABASE, 'php');
-		$queue = 'jobs';
-		$payload = ['another_value'];
-		Resque::enqueue($queue, 'Test_Job_With_TearDown', $payload);
-
-		$this->assertEquals(Resque::queues(), ['jobs']);
-		$this->assertEquals(Resque::size($queue), 1);
-
-		Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
-		$this->assertEquals(Resque::size($queue), 0);
 	}
 
 	public function testDequeueAll()
