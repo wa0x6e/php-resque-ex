@@ -49,7 +49,7 @@ class Resque_Worker
     const LOG_TYPE_CRITICAL = 500;
     const LOG_TYPE_ALERT = 550;
 
-    public $logOutput = STDOUT;
+    public $logOutput = null;
 
     /**
      * @var int Current log level of this worker.
@@ -166,6 +166,11 @@ class Resque_Worker
      */
     public function __construct($queues)
     {
+        if (defined('STDOUT'))
+        {
+            $this->logOutput = STDOUT;
+        }
+
         if (!is_array($queues)) {
             $queues = array($queues);
         }
@@ -260,6 +265,9 @@ class Resque_Worker
 
             $this->child = null;
             $this->doneWorking();
+
+            $fired = Resque_Event::trigger('afterdoneworking', $job);
+            $this->log(array('message' => "afterdoneworking triggered {$fired} callbacks", 'data' => compact('job')), self::LOG_TYPE_INFO);
         }
 
         $this->unregisterWorker();
@@ -509,9 +517,13 @@ class Resque_Worker
     public function workerPids()
     {
         $pids = array();
-        exec('ps -A -o pid,comm | grep [r]esque', $cmdOutput);
+        exec('ps -A -o pid,comm,command | grep [r]esque', $cmdOutput);
         foreach ($cmdOutput as $line) {
-            list($pids[]) = explode(' ', trim($line), 2);
+            $cols = explode(' ', trim($line), 3);
+            if (trim($cols[1])=='php')
+            {
+                $pids[] = trim($cols[0]);
+            }
         }
         return $pids;
     }
@@ -626,7 +638,9 @@ class Resque_Worker
         if (($this->logLevel === self::LOG_NORMAL || $this->logLevel === self::LOG_VERBOSE) && $code !== self::LOG_TYPE_DEBUG) {
 
             if ($this->logger === null) {
-                fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
+                if (!is_null($this->logOutput)) {
+                    fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
+                }
             } else {
                 switch ($code) {
                     case self::LOG_TYPE_INFO:
@@ -650,7 +664,9 @@ class Resque_Worker
 
         } else if ($code === self::LOG_TYPE_DEBUG && $this->logLevel === self::LOG_VERBOSE) {
             if ($this->logger === null) {
-                fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
+                if (!is_null($this->logOutput)) {
+                    fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
+                }
             } else {
                 $this->logger->addDebug($message, $extra);
             }
