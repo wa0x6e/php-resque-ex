@@ -1,183 +1,70 @@
 <?php
+use Predis\Client as Predis;
+use Predis\Command\Processor\KeyPrefixProcessor;
 
-if (class_exists('Redis')) {
-    class RedisApi extends Redis
+class RedisApi extends Predis
+{
+    private static $namespace = 'resque:';
+    private $prefix = null;
+
+    /**
+     * RedisApi constructor.
+     * set all options and add prefix processor to make prefix customizable
+     *
+     * @param mixed|null $host
+     * @param mixed|null $port
+     * @param int $timeout
+     * @param null $password
+     */
+    public function __construct($host, $port, $timeout = 5, $password = null)
     {
-        private static $defaultNamespace = 'resque:';
+        $options = [
+            'host' => $host,
+            'port' => $port,
+            'database' => 0,
+            'timeout' => $timeout,
+            'password' => $password,
+        ];
 
-        public function __construct($host, $port, $timeout = 5, $password = null)
-        {
-            parent::__construct();
-
-            $this->host = $host;
-            $this->port = $port;
-            $this->timeout = $timeout;
-            $this->password = $password;
-
-            $this->establishConnection();
-        }
-
-        function establishConnection()
-        {
-            $this->pconnect($this->host, (int)$this->port, (int)$this->timeout, getmypid());
-            if ($this->password !== null) {
-                $this->auth($this->password);
-            }
-
-            $this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
-        }
-
-        public function prefix($namespace)
-        {
-            if (empty($namespace)) $namespace = self::$defaultNamespace;
-            if (strpos($namespace, ':') === false) {
-                $namespace .= ':';
-            }
-            self::$defaultNamespace = $namespace;
-
-            $this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
-        }
-
-        public static function getPrefix()
-        {
-            return '';
-        }
-    }
-} else {
-    // Third- party apps may have already loaded Resident from elsewhere
-    // so lets be careful.
-    if (!class_exists('Redisent', false)) {
-        require_once dirname(__FILE__) . '/../Redisent/Redisent.php';
+        parent::__construct($options);
+        $this->prefix = new KeyPrefixProcessor(self::$namespace);
+        $this->getProfile()->setProcessor($this->prefix);
     }
 
     /**
-     * Extended Redisent class used by Resque for all communication with
-     * redis. Essentially adds namespace support to Redisent.
+     * prepare and set prefix (namespace)
      *
-     * @package        Resque/Redis
-     * @author        Chris Boulton <chris.boulton@interspire.com>
-     * @copyright    (c) 2010 Chris Boulton
-     * @license        http://www.opensource.org/licenses/mit-license.php
+     * @param null $prefix
+     * @return string namespace
      */
-    class RedisApi extends Redisent
+    public function prefix($prefix = null)
     {
-        /**
-         * Redis namespace
-         * @var string
-         */
-        private static $defaultNamespace = 'resque:';
-        /**
-         * @var array List of all commands in Redis that supply a key as their
-         *    first argument. Used to prefix keys with the Resque namespace.
-         */
-        private $keyCommands = [
-            'exists',
-            'del',
-            'type',
-            'keys',
-            'expire',
-            'ttl',
-            'move',
-            'set',
-            'setex',
-            'get',
-            'getset',
-            'setnx',
-            'incr',
-            'incrby',
-            'decr',
-            'decrby',
-            'rpush',
-            'lpush',
-            'llen',
-            'lrange',
-            'ltrim',
-            'lindex',
-            'lset',
-            'lrem',
-            'lpop',
-            'rpop',
-            'sadd',
-            'srem',
-            'spop',
-            'scard',
-            'sismember',
-            'smembers',
-            'srandmember',
-            'zadd',
-            'zrem',
-            'zrange',
-            'zrevrange',
-            'zrangebyscore',
-            'zcard',
-            'zscore',
-            'zremrangebyscore',
-            'sort',
-            'rpoplpush',
-        ];
-        // sinterstore
-        // sunion
-        // sunionstore
-        // sdiff
-        // sdiffstore
-        // sinter
-        // smove
-        // rename
-        // mget
-        // msetnx
-        // mset
-        // renamenx
-
-        /**
-         * Set Redis namespace (prefix) default: resque
-         * @param string $namespace
-         */
-        public function prefix($namespace)
-        {
-            if (strpos($namespace, ':') === false) {
-                $namespace .= ':';
-            }
-            self::$defaultNamespace = $namespace;
+        if (empty($prefix)) $prefix = self::$namespace;
+        if (strpos($prefix, ':') === false) {
+            $prefix .= ':';
         }
+        self::$namespace = $prefix;
+        $this->prefix->setPrefix(self::$namespace);
 
-        /**
-         * Magic method to handle all function requests and prefix key based
-         * operations with the {self::$defaultNamespace} key prefix.
-         *
-         * @param string $name The name of the method called.
-         * @param array $args Array of supplied arguments to the method.
-         * @return mixed Return value from Resident::call() based on the command.
-         */
-        public function __call($name, $args)
-        {
-            $args = func_get_args();
-            if (in_array(strtolower($name), $this->keyCommands)) {
-                $args[1][0] = self::$defaultNamespace . $args[1][0];
-            }
-            try {
-                return parent::__call($name, $args[1]);
-            } catch (RedisException $e) {
-                return false;
-            }
-        }
-
-        public static function getPrefix()
-        {
-            return self::$defaultNamespace;
-        }
+        return self::$namespace;
     }
+
+    /**
+     * get prefix (namespace)
+     *
+     * @return string namespace
+     */
+    public static function getPrefix()
+    {
+        return self::$namespace;
+    }
+
 }
 
-class Resque_Redis extends redisApi
+class Resque_Redis extends RedisApi
 {
-
     public function __construct($host, $port, $password = null)
     {
-        if (is_subclass_of($this, 'Redis')) {
-            parent::__construct($host, $port, 5, $password);
-        } else {
-            parent::__construct($host, $port);
-        }
-
+        parent::__construct($host, $port, 5, $password);
     }
 }
