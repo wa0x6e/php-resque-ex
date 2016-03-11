@@ -79,6 +79,7 @@ if (class_exists('Redis')) {
             'ttl',
             'move',
             'set',
+            'setex',
             'get',
             'getset',
             'setnx',
@@ -150,7 +151,7 @@ if (class_exists('Redis')) {
         public function __call($name, $args)
         {
             $args = func_get_args();
-            if (in_array($name, $this->keyCommands)) {
+            if (in_array(strtolower($name), $this->keyCommands)) {
                 $args[1][0] = self::$defaultNamespace . $args[1][0];
             }
             try {
