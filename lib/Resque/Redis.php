@@ -11,22 +11,25 @@ class RedisApi extends Predis
      * RedisApi constructor.
      * set all options and add prefix processor to make prefix customizable
      *
-     * @param mixed|null $host
-     * @param mixed|null $port
-     * @param int $timeout
-     * @param null $password
+     * @param array|string $host
+     * @param integer $port
+     * @param integer $timeout
+     * @param null|string $password
      */
-    public function __construct($host, $port, $timeout = 5, $password = null)
+    public function __construct($host, $port = 6379, $timeout = 5, $password = null)
     {
         $options = [
-            'host' => $host,
             'port' => $port,
             'database' => 0,
             'timeout' => $timeout,
             'password' => $password,
         ];
 
-        parent::__construct($options);
+        if(is_array($host)){
+            $options['cluster'] = 'redis';
+        }
+
+        parent::__construct($host,$options);
         $this->prefix = new KeyPrefixProcessor(self::$namespace);
         $this->getProfile()->setProcessor($this->prefix);
     }
@@ -34,7 +37,7 @@ class RedisApi extends Predis
     /**
      * prepare and set prefix (namespace)
      *
-     * @param null $prefix
+     * @param null|string $prefix
      * @return string namespace
      */
     public function prefix($prefix = null)
@@ -63,7 +66,7 @@ class RedisApi extends Predis
 
 class Resque_Redis extends RedisApi
 {
-    public function __construct($host, $port, $password = null)
+    public function __construct($host, $port = 6379, $password = null)
     {
         parent::__construct($host, $port, 5, $password);
     }
