@@ -5,9 +5,9 @@ require_once dirname(__FILE__) . '/Resque/Exception.php';
 /**
  * Base Resque class.
  *
- * @package		Resque
- * @author		Chris Boulton <chris@bigcommerce.com>
- * @license		http://www.opensource.org/licenses/mit-license.php
+ * @package        Resque
+ * @author        Chris Boulton <chris@bigcommerce.com>
+ * @license        http://www.opensource.org/licenses/mit-license.php
  */
 class Resque
 {
@@ -86,21 +86,16 @@ class Resque
             $server = 'localhost:6379';
         }
 
-        if (is_array($server)) {
-            require_once dirname(__FILE__) . '/Resque/RedisCluster.php';
-            self::$redis = new Resque_RedisCluster($server);
-        } else {
+        require_once dirname(__FILE__) . '/Resque/Redis.php';
+        $port = null;
+        if (!is_array($server)) {
             if (strpos($server, 'unix:') === false) {
-                list($host, $port) = explode(':', $server);
-            } else {
-                $host = $server;
-                $port = null;
+                list($server, $port) = explode(':', $server);
             }
-            require_once dirname(__FILE__) . '/Resque/Redis.php';
-            $redisInstance = new Resque_Redis($host, $port, self::$password);
-            $redisInstance->prefix(self::$namespace);
-            self::$redis = $redisInstance;
         }
+        $redisInstance = new Resque_Redis($server, $port, self::$password);
+        $redisInstance->prefix(self::$namespace);
+        self::$redis = $redisInstance;
 
         if (!empty(self::$redisDatabase)) {
             self::$redis->select(self::$redisDatabase);
@@ -184,7 +179,7 @@ class Resque
         if ($result) {
             Resque_Event::trigger('afterEnqueue', [
                 'class' => $class,
-                'args'  => $args,
+                'args' => $args,
                 'queue' => $queue,
             ]);
         }
@@ -242,14 +237,14 @@ class Resque
         // move each item from original queue to temp queue and process it
         $finished = false;
         while (!$finished) {
-            $string = self::redis()->rpoplpush($originalQueue, self::redis()->getPrefix() . $tempQueue);
+            $string = self::redis()->rpoplpush($originalQueue, $tempQueue);
 
             if (!empty($string)) {
                 if (self::matchItem($string, $items)) {
                     self::redis()->rpop($tempQueue);
                     $counter++;
                 } else {
-                    self::redis()->rpoplpush($tempQueue, self::redis()->getPrefix() . $requeueQueue);
+                    self::redis()->rpoplpush($tempQueue, $requeueQueue);
                 }
             } else {
                 $finished = true;
@@ -259,7 +254,7 @@ class Resque
         // move back from temp queue to original queue
         $finished = false;
         while (!$finished) {
-            $string = self::redis()->rpoplpush($requeueQueue, self::redis()->getPrefix() . $originalQueue);
+            $string = self::redis()->rpoplpush($requeueQueue, $originalQueue);
             if (empty($string)) {
                 $finished = true;
             }
