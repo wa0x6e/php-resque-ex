@@ -19,7 +19,7 @@ if (class_exists('Redis')) {
 
         function establishConnection()
         {
-            $this->pconnect($this->host, (int)$this->port, (int)$this->timeout, getmypid());
+            $this->connect($this->host, (int)$this->port, (int)$this->timeout, getmypid());
             if ($this->password !== null) {
                 $this->auth($this->password);
             }
