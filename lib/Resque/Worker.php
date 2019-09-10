@@ -630,19 +630,19 @@ class Resque_Worker
             } else {
                 switch ($code) {
                     case self::LOG_TYPE_INFO:
-                        $this->logger->addInfo($message, $extra);
+                        $this->logger->info($message, $extra);
                         break;
                     case self::LOG_TYPE_WARNING:
-                        $this->logger->addWarning($message, $extra);
+                        $this->logger->warning($message, $extra);
                         break;
                     case self::LOG_TYPE_ERROR:
-                        $this->logger->addError($message, $extra);
+                        $this->logger->error($message, $extra);
                         break;
                     case self::LOG_TYPE_CRITICAL:
-                        $this->logger->addCritical($message, $extra);
+                        $this->logger->critical($message, $extra);
                         break;
                     case self::LOG_TYPE_ALERT:
-                        $this->logger->addAlert($message, $extra);
+                        $this->logger->alert($message, $extra);
                 }
             }
 
@@ -652,7 +652,7 @@ class Resque_Worker
             if ($this->logger === null) {
                 fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
             } else {
-                $this->logger->addDebug($message, $extra);
+                $this->logger->debug($message, $extra);
             }
         } else {
             return false;
