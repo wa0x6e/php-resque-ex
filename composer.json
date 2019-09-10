@@ -40,5 +40,8 @@
 	],
 	"conflict": {
 		"chrisboulton/php-resque": "*"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^5.0"
 	}
 }
