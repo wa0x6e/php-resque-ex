@@ -59,7 +59,7 @@ Fresque is shipped by default to manage your workers. See [Fresque Documentation
 
 Clone the git repo
 
-	$ git clone git://github.com/kamisama/php-resque-ex.git
+	$ git clone git://github.com/wa0x6e/php-resque-ex.git
 
  `cd` into the folder you just cloned
 
