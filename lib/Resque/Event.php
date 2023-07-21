@@ -22,22 +22,23 @@ class Resque_Event
 	 */
 	public static function trigger($event, $data = null)
 	{
+		$fired = 0;
+
 		if (!is_array($data)) {
 			$data = array($data);
 		}
-
-		if (empty(self::$events[$event])) {
-			return true;
-		}
-		
-		foreach (self::$events[$event] as $callback) {
-			if (!is_callable($callback)) {
-				continue;
+		if (!empty(self::$events[$event])) {
+			foreach (self::$events[$event] as $callback) {
+				if (!is_callable($callback)) {
+					continue;
+				}
+				$fired++;
+				call_user_func_array($callback, $data);
 			}
-			call_user_func_array($callback, $data);
+		
 		}
 		
-		return true;
+		return $fired;
 	}
 	
 	/**
